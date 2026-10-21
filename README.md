@@ -60,6 +60,13 @@ disabled when unavailable. Drag the six-dot handle to reposition the toolbar;
 it stays inside the monitor. Toolbar interactions do not create strokes.
 Color/size controls are disabled for the object eraser.
 
+On the canvas, the mouse cursor shows the selected tool's icon beside a precise
+target ring. Its center is the drawing position; the icon is offset so it does
+not hide the point. The ring follows brush thickness and the badge follows the
+selected color. Eraser uses a neutral icon and its hit-tolerance ring. Toolbar
+controls retain the normal pointer; the drag handle uses a move cursor.
+Shared icon artwork lives in `icons.py`; tool cursors are built in `cursors.py`.
+
 Each drawing tool remembers its own color/size within the overlay session.
 Changes affect future objects. Switching tools during a drawing gesture cancels
 its unfinished preview; an eraser gesture already performed is kept and undoable.

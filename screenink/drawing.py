@@ -4,7 +4,7 @@ from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QWidget
 
-from .annotations import Tool
+from .cursors import drawing_cursor
 from .interaction import DrawingController
 
 
@@ -21,8 +21,8 @@ class DrawingCanvas(QWidget):
         self.update_cursor()
 
     def update_cursor(self):
-        self.setCursor(Qt.CursorShape.PointingHandCursor if self.controller.tool == Tool.ERASER
-                       else Qt.CursorShape.CrossCursor)
+        self.setCursor(drawing_cursor(self.controller.tool, self.controller.color,
+                                      self.controller.width, self.devicePixelRatioF()))
 
     def position(self, event):
         p = event.position()
