@@ -1,21 +1,119 @@
-# ScreenInk — Milestone 2
+<p align="center">
+  <img src="screenink/assets/screenink.png" width="112" height="112" alt="ScreenInk app icon">
+</p>
 
-A lightweight Windows-first desktop annotation app using Python 3 and PySide6 /
-Qt 6. Milestone 2 extends the existing tray/overlay architecture. No administrator
-privileges are required.
+<h1 align="center">ScreenInk</h1>
+<p align="center"><strong>Explain it. Draw it. Right on your screen.</strong></p>
+<p align="center">A portable Windows screen annotation tool for teachers, creators, developers, and students.</p>
+<p align="center">
+  <a href="https://github.com/Dineth-ng/ScreenInk/releases">Download beta</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="docs/BETA_TESTING.md">Tester guide</a> ·
+  <a href="https://github.com/Dineth-ng/ScreenInk/issues">Report a bug</a>
+</p>
 
-## Install and run
+---
 
-Install Python 3.11 or newer with pip. In Windows PowerShell:
+**Current test version: 0.2.0-beta.1 · Windows x64 · Python + PySide6 / Qt 6**
+
+Press **Ctrl+Alt+D** to freeze the monitor under your pointer and start drawing.
+Highlight a code block, point out a command, or sketch an explanation during a
+tutorial. Press **Escape** to return to your desktop; ScreenInk stays in the tray.
+
+## Download the Windows beta
+
+Get **ScreenInk-0.2.0-beta.1-windows-x64.zip** from
+[GitHub Releases](https://github.com/Dineth-ng/ScreenInk/releases).
+
+- Portable build: no Python installation or administrator privileges required.
+- Target platform: Windows 10/11, 64-bit x64. Clean-machine testing is still needed.
+- Includes the executable, runtime files, tester guide, and README.
+- A companion `.sha256` file lets you verify the download.
+
+This beta is unsigned, so Windows may show an unknown-publisher warning. Check
+the download source and checksum before deciding whether to run it.
 
 ```powershell
-cd F:\ScreenInk
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe main.py
+Get-FileHash .\ScreenInk-0.2.0-beta.1-windows-x64.zip -Algorithm SHA256
 ```
 
-To clone onto another machine first:
+Compare the result with the published `.sha256` file.
+
+## Quick start
+
+1. Extract the **complete ZIP** to a folder.
+2. Open `ScreenInk` and double-click **ScreenInk.exe**. Keep its `_internal` folder beside it.
+3. The main window opens with a tool guide, **Start drawing**, and **Keyboard shortcuts** settings. A tray icon also appears.
+4. Move your pointer to the monitor to annotate and press **Ctrl+Alt+D**.
+5. Select a tool, color, and width. Draw using the left mouse button.
+6. Press **Escape** to close the overlay, or right-click the tray icon → **Exit** to quit.
+
+Run the executable from the extracted folder, not from inside the ZIP. You can
+create a Windows shortcut to `ScreenInk.exe` for convenient access.
+
+## Change your shortcuts
+
+Open **Keyboard shortcuts** in the main window. Click a field, press your desired
+combination, then click **Apply shortcuts**. You can change activation, Pen, Arrow,
+Rectangle, Highlighter, Eraser, Undo, Redo, Clear, and Close. **Restore defaults**
+fills in the original bindings; click Apply to save them.
+
+The activation shortcut works globally and supports Ctrl, Alt, or Win with a
+letter, number, or F1–F24 (Shift can also be included). Tool shortcuts work only
+inside the overlay. Duplicates and invalid combinations are rejected. If another
+app owns the new global shortcut, the previous registration stays active.
+Settings are saved per Windows user and restored on the next launch. Escape
+always closes the overlay, even if you choose another Close shortcut.
+
+![ScreenInk startup window](screenink/assets/home-preview.png)
+
+![Customizable keyboard shortcuts](screenink/assets/shortcuts-preview.png)
+
+Closing the main window hides it to the tray. Double-click the tray icon or choose
+**Open ScreenInk / Settings** to reopen it. Use **Exit ScreenInk** or tray **Exit**
+to quit. Opening the main window while drawing closes the overlay and discards
+that drawing session.
+
+## Drawing tools (default shortcuts)
+
+| Tool | Shortcut | Use it to… |
+| --- | --- | --- |
+| Pen | **P** | Draw smooth, antialiased strokes and dots. |
+| Arrow | **A** | Drag from tail to tip with a live preview in any direction. |
+| Rectangle | **R** | Frame code or content with a colored border and transparent interior. |
+| Highlighter | **H** | Mark content at approximately 35% opacity; starts yellow at 12 px. |
+| Object eraser | **E** | Click to remove the topmost annotation or drag across several objects. |
+| Undo | **Ctrl+Z** | Undo drawing, erasing, or Clear; repeat for earlier actions. |
+| Redo | **Ctrl+Y** | Restore undone actions. New edits discard the old redo branch. |
+| Clear all | **Ctrl+Shift+X** | Remove all annotations without closing the overlay. Undo restores them. |
+| Close overlay | **Escape** | Return to the desktop while ScreenInk stays in the tray. |
+
+### Built for explanations
+
+- **Five colors:** red, green, yellow, white, and blue.
+- **Five widths:** 2, 4, 6, 8, and 12 logical pixels.
+- **Compact dark toolbar:** icon buttons, selected-tool indicator, and a draggable six-dot handle.
+- **Tool-aware cursors:** an icon badge shows the tool; the target center marks the exact drawing position.
+- **Readable background:** the frozen screen is darkened by approximately 25% while ink stays visible.
+- **Independent objects:** erasing never changes the original background; a rectangle's interior is not an eraser target.
+- **Tray workflow:** shortcut failure has a tray-menu fallback, and duplicate instances are prevented.
+
+Each drawing tool remembers its own settings during an overlay session. Existing
+annotations keep their original style. Switching tools cancels an unfinished
+drawing preview. An eraser drag is grouped into one undo action.
+
+## Beta limitations
+
+- Closing the overlay discards annotations and undo history; reopening starts fresh.
+- One selected monitor is covered at a time. Mixed-DPI configurations need real desktop testing.
+- The background is frozen; the overlay does not pass clicks to the app beneath it.
+- No annotation saving/export, recording, text tool, installer, auto-updater, or code signing yet.
+- Protected content, UAC secure desktop, and some exclusive fullscreen apps may block capture or overlays.
+- If Ctrl+Alt+D is already registered, use **Start drawing** from the tray; restart after resolving the conflict.
+
+## Run from source
+
+Use Python 3.11 or newer on Windows. In PowerShell:
 
 ```powershell
 git clone https://github.com/Dineth-ng/ScreenInk.git
@@ -25,166 +123,81 @@ python -m venv .venv
 .\.venv\Scripts\python.exe main.py
 ```
 
-Activation is unnecessary. Keep the terminal open while running. For a launch
-without a console after setup:
+No virtual-environment activation is needed. For a launch without a console:
 
 ```powershell
 Start-Process -FilePath .\.venv\Scripts\pythonw.exe -ArgumentList main.py -WorkingDirectory (Get-Location).Path
 ```
 
-The existing PySide6 requirement is unchanged; no additional packages are needed.
+## Build the portable beta
 
-## Tools and shortcuts
-
-Find the pen icon in the Windows tray (possibly under the hidden-icons arrow).
-Move the pointer to the desired monitor and press **Ctrl+Alt+D**, or right-click
-the tray icon and choose **Start drawing**. ScreenInk opens a frameless topmost
-overlay of that monitor with a frozen background darkened by about 25%.
-
-| Tool / action | Key | How it works |
-| --- | --- | --- |
-| Pen | P | Hold the left button to draw smooth antialiased curves with round ends. A click draws a dot. |
-| Arrow | A | Drag from tail to tip in any direction. A live preview is committed on release; the arrowhead follows direction and thickness. |
-| Rectangle | R | Drag between opposite corners in any direction. The outline previews live; its interior stays transparent. |
-| Highlighter | H | Draw at 35% opacity. Defaults to yellow, 12 px; color and thickness can be changed. Separate overlapping strokes naturally darken. |
-| Eraser | E | Click near a stroke/outline to remove the entire topmost object. Drag to erase objects along the swept pointer path. One eraser drag is one undoable action. Rectangle interiors do not count as hits. |
-| Undo | Ctrl+Z | Undo completed drawings, erasing, and Clear. Repeat to go further back. |
-| Redo | Ctrl+Y | Restore undone actions. A new drawing, successful erasure, or nonempty Clear discards the redo branch. |
-| Clear | Ctrl+Shift+X | Remove all annotations and keep the overlay open. Undo restores everything together. Empty Clear does nothing. |
-| Close overlay | Escape | Return to the desktop and keep the tray app running. Also available on the toolbar. |
-
-The compact dark toolbar has tool icons, **red, green, yellow, white, blue**,
-thicknesses **2, 4, 6, 8, 12 logical pixels**, Undo, Redo, Clear, and Close.
-Hover icons for tooltips. The selected tool has a blue border. Undo/Redo are
-disabled when unavailable. Drag the six-dot handle to reposition the toolbar;
-it stays inside the monitor. Toolbar interactions do not create strokes.
-Color/size controls are disabled for the object eraser.
-
-On the canvas, the mouse cursor shows the selected tool's icon beside a precise
-target ring. Its center is the drawing position; the icon is offset so it does
-not hide the point. The ring follows brush thickness and the badge follows the
-selected color. Eraser uses a neutral icon and its hit-tolerance ring. Toolbar
-controls retain the normal pointer; the drag handle uses a move cursor.
-Shared icon artwork lives in `icons.py`; tool cursors are built in `cursors.py`.
-
-Each drawing tool remembers its own color/size within the overlay session.
-Changes affect future objects. Switching tools during a drawing gesture cancels
-its unfinished preview; an eraser gesture already performed is kept and undoable.
-Geometry uses canvas-local logical coordinates; Qt handles display scaling.
-
-Close and reopen for a fresh background and empty annotations/history. Captures
-and drawings remain in memory and are discarded on close. Use the tray's **Exit**
-option to quit and release the shortcut.
-
-## Preserved Milestone 1 behavior
-
-- Global Ctrl+Alt+D through Windows without polling or elevation.
-- A warning if registration fails; Start drawing in the tray remains usable.
-  Release the shortcut in the conflicting app and restart ScreenInk to retry.
-- A per-user Qt instance lock prevents duplicates and recovers dead-process locks.
-- Overlay lifetime stays separate from the tray application.
-- Fullscreen frameless topmost overlay, darkened frozen background, Escape, and Exit.
-
-No screenshot export, recording, text, or persistence was added. The original
-in-memory background capture remains necessary for the overlay.
-
-## Project structure and file guide
-
-```text
-ScreenInk/
-├── main.py
-├── requirements.txt
-├── README.md
-├── .gitignore
-├── screenink/
-│   ├── __init__.py
-│   ├── application.py
-│   ├── hotkey.py
-│   ├── overlay.py
-│   ├── toolbar.py
-│   ├── drawing.py
-│   ├── interaction.py
-│   ├── annotations.py
-│   └── history.py
-└── tests/
-    └── test_drawing.py
-```
-
-| File | Simple explanation |
-| --- | --- |
-| `main.py` | Starts ScreenInk. |
-| `application.py` | Existing tray, instance lock, background capture, and lifecycle. |
-| `hotkey.py` | Existing native Windows global shortcut registration and cleanup. |
-| `overlay.py` | Fullscreen window, local shortcuts, and signal connections. |
-| `toolbar.py` | Draggable dark toolbar with painted icons and tool settings. |
-| `drawing.py` | Canvas widget that forwards input and renders the document. |
-| `interaction.py` | Mouse gestures, previews, settings, and erasing. |
-| `annotations.py` | Independent objects, smoothed paths, shape geometry, and outline hit testing. |
-| `history.py` | Document state and multiple undo/redo actions. |
-| `__init__.py` | Marks the folder as a Python package. |
-| `tests/test_drawing.py` | Automated geometry, history, rendering, and UI checks. |
-| `requirements.txt` | PySide6 dependency, including Qt. |
-| `.gitignore` | Excludes virtual environments and Python caches. |
-| `README.md` | Setup, tool guide, architecture, and testing instructions. |
-
-The original application and hotkey modules are preserved. The canvas forwards
-mouse positions to a controller instead of implementing gestures inside painting.
-Each annotation owns its tool, copied color/width, and geometry. Committed objects
-are no longer modified. History snapshots share these objects rather than copying
-their paths or the screenshot.
-
-Qt signals communicate settings, document changes, and invalidated drawing regions.
-QPainter renders the screenshot, darkening, objects, then the preview; it never
-paints into the screenshot. Geometry is cached between changes. Mouse moves
-invalidate the union of old/new preview bounds, and painting is clipped to dirty
-regions. Finished actions/history changes request a full repaint.
-
-There are no polling loops or worker threads. Long sessions with many complex
-strokes use more memory and repaint time; closing releases the session. The
-toolbar is about 614 logical pixels wide at default metrics, suitable for standard
-desktop resolutions.
-
-## Automated tests
-
-From the project folder:
+Build on Windows x64 from the project folder:
 
 ```powershell
-.\.venv\Scripts\python.exe -m compileall -q main.py screenink tests
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
+.\.venv\Scripts\python.exe tools\build_beta.py
 ```
 
-Tests use built-in unittest and PySide6.QtTest; no test package is needed. They
-force offscreen Qt and use synthetic backgrounds. Coverage includes smoothing,
-dots, arrows in different directions, rectangle previews/border hits, highlight
-opacity, every color/width, multiple undo/redo operations, redo branching, whole
-object erasing, undoable Clear, switching tools, toolbar isolation/drag bounds,
-shortcuts, screen edges, background immutability, and fresh overlay sessions.
+Outputs:
 
-Offscreen checks do not prove real desktop focus, tray menus, capture, global
-shortcut delivery, or mixed-DPI behavior. Use the real Windows checklist below.
+```text
+dist/ScreenInk/ScreenInk.exe
+release/ScreenInk-0.2.0-beta.1-windows-x64.zip
+release/ScreenInk-0.2.0-beta.1-windows-x64.sha256
+```
 
-## Manual testing checklist
+PyInstaller bundles the runtime into a portable folder, sets the executable icon
+and Windows version properties, then the build script creates the ZIP and hash.
+Generated builds are excluded from Git; distribute the ZIP through Releases.
+Edit `screenink/assets/screenink.svg` and run `tools/generate_icon.py` to regenerate
+the PNG and multi-resolution Windows ICO.
 
-- [ ] Launch without elevation; confirm the tray. Launch again and confirm only one instance remains.
-- [ ] Focus another app and press Ctrl+Alt+D. Check fullscreen coverage, topmost behavior, frozen content, and background darkening.
-- [ ] Pen: draw dots, slow curves, fast handwriting, and long strokes. Check smoothness and responsiveness.
-- [ ] Arrow: drag up/down/left/right and diagonally, using short and long arrows. Check preview, head direction, and commit on release.
-- [ ] Rectangle: drag from every corner. Check preview and transparent interiors.
-- [ ] Highlighter: press H; confirm yellow/12 px defaults and readable content under approximately 35% opacity strokes.
-- [ ] Try all five colors and widths. Confirm new objects use the selection, old objects keep their style, and each tool remembers settings.
-- [ ] Switch with icons and P/A/R/H/E. Check the selected indicator. Switch mid-drag and confirm the unfinished preview disappears.
-- [ ] Erase strokes, arrowheads, and rectangle borders. Check whole-object removal and intact background; rectangle interiors/blank areas should do nothing.
-- [ ] Click overlapping objects and confirm only the topmost is removed. Drag rapidly across objects, then undo the drag together.
-- [ ] Undo/redo several mixed actions. Undo then draw and confirm the old redo branch disappears. Check toolbar button availability.
-- [ ] Clear with the icon and Ctrl+Shift+X. Check the overlay stays open; Undo restores all and Redo clears again.
-- [ ] Click every toolbar control; check no accidental ink. Drag the handle to each edge and confirm it remains reachable and keeps its position.
-- [ ] Draw along each screen boundary and release outside the canvas. Check clipping, alignment, and no stuck stroke.
-- [ ] Test tool keys, Ctrl+Z/Ctrl+Y, and Escape after using color/size controls. Escape returns to the desktop while the tray stays alive.
-- [ ] Close/reopen repeatedly; confirm fresh background, empty objects, and empty history.
-- [ ] Repeat on each monitor, including left of primary, at 100%, 150%, and mixed DPI. Check pointer/ink alignment and toolbar bounds.
-- [ ] Reserve Ctrl+Alt+D in another app before launch; confirm warning and tray fallback. Release it and restart to retry.
-- [ ] Exit through the tray with an overlay open, then relaunch. Confirm shortcut cleanup. Force-stop once and confirm stale-lock recovery.
+## Test and contribute
 
-Protected content, UAC secure desktop, lock screens, and some exclusive fullscreen
-apps can block capture/topmost windows. Non-Windows global shortcuts are outside
-this Windows-first milestone.
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe main.py --smoke-test
+.\dist\ScreenInk\ScreenInk.exe --smoke-test
+```
+
+The 17 regression tests cover geometry, transparency, styles, erasing,
+history, toolbar input, custom shortcuts, settings persistence, safe hotkey
+replacement, and fresh sessions. The smoke command
+checks startup, bundled icon loading, tool rendering, and history without opening
+a desktop overlay or registering the global shortcut; exit code 0 means success.
+Offscreen tests cannot confirm real desktop focus, tray interaction, global
+shortcut delivery, or mixed-DPI behavior.
+
+Use the [beta checklist](docs/BETA_TESTING.md) on a real Windows desktop. Report
+bugs through [GitHub Issues](https://github.com/Dineth-ng/ScreenInk/issues), including
+the beta version, Windows version, display scaling, reproduction steps, and
+expected/actual behavior.
+
+## Project map
+
+```text
+screenink/
+  application.py    Tray, instance lock, capture, and app lifetime
+  window.py         Startup interface, tool guide, and shortcut editor
+  settings.py       Shortcut validation and saved per-user preferences
+  overlay.py        Fullscreen window and local shortcuts
+  drawing.py        Canvas input forwarding and rendering
+  interaction.py    Tool settings, gestures, and live previews
+  annotations.py    Independent annotation geometry and hit testing
+  history.py        Undo/redo document state
+  toolbar.py        Draggable controls
+  icons.py          Shared tool icon artwork
+  cursors.py        Tool-aware mouse cursors
+  branding.py       Application icon loader
+  version.py        Beta version
+  smoke_test.py     Packaged startup check
+  hotkey.py         Windows global shortcut registration
+  assets/           SVG, PNG, and multi-resolution ICO
+tools/              Icon generator and Windows build script
+packaging/          Windows version metadata and release notes
+tests/              Automated drawing regression tests
+docs/               Developer notes and beta tester guide
+```
+
+See [developer notes](docs/DEVELOPMENT.md) for the drawing architecture and the
+detailed Milestone 2 manual checklist.

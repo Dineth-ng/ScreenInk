@@ -3,26 +3,20 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QLockFile, QObject, QStandardPaths, Qt, Slot
-from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPen, QPixmap
+from PySide6.QtCore import QLockFile, QObject, QStandardPaths, QTimer, Slot
+from PySide6.QtGui import QAction, QCursor
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
-from .hotkey import GlobalHotkey
+from .hotkey import GlobalHotkey, windows_shortcut
 from .overlay import AnnotationOverlay
+from .branding import application_icon
+from .version import __version__
+from .settings import AppSettings, normalize_shortcuts
+from .window import MainWindow
 
 
 def make_icon():
-    pixmap = QPixmap(64, 64)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setBrush(QColor("#252525"))
-    painter.setPen(Qt.PenStyle.NoPen)
-    painter.drawRoundedRect(2, 2, 60, 60, 12, 12)
-    painter.setPen(QPen(QColor("#ff4949"), 7, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-    painter.drawLine(17, 46, 47, 16)
-    painter.end()
-    return QIcon(pixmap)
+    return application_icon()
 
 
 class ScreenInkApplication(QObject):
@@ -30,23 +24,85 @@ class ScreenInkApplication(QObject):
         super().__init__(app)
         self.app = app
         self.overlay = None
+        self.capture_pending = False
+        self.settings = AppSettings()
+        self.window = MainWindow(self.settings.shortcuts)
+        self.window.drawing_requested.connect(self.start_drawing)
+        self.window.shortcuts_requested.connect(self.apply_shortcuts)
+        self.window.exit_requested.connect(self.exit_application)
+        self.capture_timer = QTimer(self)
+        self.capture_timer.setSingleShot(True)
+        self.capture_timer.timeout.connect(self.capture_screen)
         self.tray = QSystemTrayIcon(make_icon(), self)
-        self.tray.setToolTip("ScreenInk — Ctrl+Alt+D to draw")
+        self.tray.setToolTip(f"ScreenInk {__version__} — Ctrl+Alt+D to draw")
         self.menu = QMenu()
-        start = QAction("Start drawing (Ctrl+Alt+D)", self.menu)
-        start.triggered.connect(self.start_drawing)
-        self.menu.addAction(start)
+        home = QAction("Open ScreenInk / Settings", self.menu)
+        home.triggered.connect(self.show_window)
+        self.menu.addAction(home)
+        self.start_action = QAction("Start drawing", self.menu)
+        self.start_action.triggered.connect(self.start_drawing)
+        self.menu.addAction(self.start_action)
         self.menu.addSeparator()
         exit_action = QAction("Exit", self.menu)
-        exit_action.triggered.connect(app.quit)
+        exit_action.triggered.connect(self.exit_application)
         self.menu.addAction(exit_action)
         self.tray.setContextMenu(self.menu)
+        self.tray.activated.connect(self.tray_activated)
         self.hotkey = GlobalHotkey(app)
         self.hotkey.activated.connect(self.start_drawing)
         app.aboutToQuit.connect(self.shutdown)
         self.tray.show()
-        if not self.hotkey.register():
-            QMessageBox.warning(None, "ScreenInk shortcut unavailable", self.hotkey.error)
+        self.hotkey.register(self.settings.shortcuts["activate"])
+        self.refresh_shortcuts()
+        self.window.show()
+        if not self.hotkey.registered:
+            QMessageBox.warning(self.window, "ScreenInk shortcut unavailable", self.hotkey.error)
+
+    def tray_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
+            self.show_window()
+
+    @Slot()
+    def show_window(self):
+        self.capture_timer.stop()
+        self.capture_pending = False
+        if self.overlay is not None:
+            self.overlay.close()
+        self.window.showNormal()
+        self.window.raise_()
+        self.window.activateWindow()
+
+    @Slot()
+    def exit_application(self):
+        self.window.allow_exit = True
+        self.app.quit()
+
+    def refresh_shortcuts(self):
+        activation = self.settings.shortcuts["activate"]
+        self.start_action.setText(f"Start drawing ({activation})")
+        self.tray.setToolTip(f"ScreenInk {__version__} — {activation} to draw")
+        self.window.refresh(self.settings.shortcuts, self.hotkey.registered)
+
+    @Slot(dict)
+    def apply_shortcuts(self, values):
+        try:
+            shortcuts = normalize_shortcuts(values)
+            windows_shortcut(shortcuts["activate"])
+        except ValueError as exc:
+            QMessageBox.warning(self.window, "Check shortcuts", str(exc))
+            return
+        old_sequence = self.settings.shortcuts["activate"]
+        if not self.hotkey.register(shortcuts["activate"]):
+            QMessageBox.warning(self.window, "Shortcut unavailable", self.hotkey.error + " Your previous settings were kept.")
+            return
+        try:
+            self.settings.save(shortcuts)
+        except OSError as exc:
+            self.hotkey.register(old_sequence)
+            QMessageBox.warning(self.window, "Could not save shortcuts", str(exc))
+            return
+        self.refresh_shortcuts()
+        self.window.status.setText("Shortcuts saved. They will also be used the next time you launch ScreenInk.")
 
     @Slot()
     def start_drawing(self):
@@ -54,6 +110,17 @@ class ScreenInkApplication(QObject):
             self.overlay.raise_()
             self.overlay.activateWindow()
             return
+        if self.capture_pending:
+            return
+        self.capture_pending = True
+        delay = 180 if self.window.isVisible() else 0
+        self.window.hide()
+        # Let Windows remove the home window before capturing the desktop.
+        self.capture_timer.start(delay)
+
+    @Slot()
+    def capture_screen(self):
+        self.capture_pending = False
         screen = QApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
         if screen is None:
             QMessageBox.warning(None, "ScreenInk", "No screen is available.")
@@ -62,7 +129,7 @@ class ScreenInkApplication(QObject):
         if screenshot.isNull():
             QMessageBox.warning(None, "ScreenInk", "The screen could not be captured. Try again.")
             return
-        self.overlay = AnnotationOverlay(screen, screenshot)
+        self.overlay = AnnotationOverlay(screen, screenshot, self.settings.shortcuts)
         self.overlay.closed.connect(self.overlay_closed)
         self.overlay.show()
         self.overlay.raise_()
@@ -75,17 +142,31 @@ class ScreenInkApplication(QObject):
 
     @Slot()
     def shutdown(self):
+        self.capture_timer.stop()
         self.hotkey.unregister()
         if self.overlay is not None:
             self.overlay.close()
         self.tray.hide()
+        self.window.hide()
 
 
 def run():
+    if "--smoke-test" in sys.argv:
+        import os
+        os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    if sys.platform == "win32":
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ScreenInk.Desktop.Beta")
     app = QApplication(sys.argv)
     app.setApplicationName("ScreenInk")
+    app.setApplicationDisplayName("ScreenInk Beta")
+    app.setApplicationVersion(__version__)
+    app.setWindowIcon(application_icon())
     app.setOrganizationName("ScreenInk")
     app.setQuitOnLastWindowClosed(False)
+    if "--smoke-test" in sys.argv:
+        from .smoke_test import run as smoke_test
+        return smoke_test(app)
     lock_directory = Path(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation))
     try:
         lock_directory.mkdir(parents=True, exist_ok=True)

@@ -4,7 +4,32 @@ import ctypes
 import sys
 from ctypes import wintypes
 
-from PySide6.QtCore import QAbstractNativeEventFilter, QObject, Signal
+from PySide6.QtCore import QAbstractNativeEventFilter, QObject, Qt, Signal
+from PySide6.QtGui import QKeySequence
+
+
+def windows_shortcut(sequence):
+    """Translate supported Qt single-key combinations to RegisterHotKey values."""
+    key_sequence = QKeySequence(sequence)
+    if key_sequence.isEmpty() or key_sequence.count() != 1:
+        raise ValueError("Choose one combination for the global shortcut.")
+    combination = key_sequence[0]
+    key, modifiers = combination.key(), combination.keyboardModifiers()
+    flags = 0x4000  # MOD_NOREPEAT
+    for qt_modifier, windows_modifier in ((Qt.KeyboardModifier.AltModifier, 1),
+            (Qt.KeyboardModifier.ControlModifier, 2), (Qt.KeyboardModifier.ShiftModifier, 4),
+            (Qt.KeyboardModifier.MetaModifier, 8)):
+        if modifiers & qt_modifier:
+            flags |= windows_modifier
+    if not flags & (1 | 2 | 8):
+        raise ValueError("The global shortcut needs Ctrl, Alt, or Win with a letter, number, or F1–F24.")
+    if ord("A") <= key <= ord("Z") or ord("0") <= key <= ord("9"):
+        virtual_key = key
+    elif Qt.Key.Key_F1 <= key <= Qt.Key.Key_F24:
+        virtual_key = 0x70 + key - Qt.Key.Key_F1
+    else:
+        raise ValueError("Use a letter, number, or F1–F24 for the global shortcut.")
+    return flags, virtual_key
 
 
 class _WindowsEventFilter(QAbstractNativeEventFilter):
@@ -32,8 +57,17 @@ class GlobalHotkey(QObject):
         self.error = ""
         self.filter = _WindowsEventFilter(self)
         self.user32 = None
+        self.sequence = ""
 
-    def register(self):
+    def register(self, sequence="Ctrl+Alt+D"):
+        try:
+            modifiers, virtual_key = windows_shortcut(sequence)
+        except ValueError as exc:
+            self.error = str(exc)
+            return False
+        normalized = QKeySequence(sequence).toString(QKeySequence.SequenceFormat.PortableText)
+        if self.registered and self.sequence == normalized:
+            return True
         if sys.platform != "win32":
             self.error = "The global shortcut is available on Windows only. Use the tray menu to draw."
             return False
@@ -42,15 +76,21 @@ class GlobalHotkey(QObject):
         self.user32.RegisterHotKey.restype = wintypes.BOOL
         self.user32.UnregisterHotKey.argtypes = [wintypes.HWND, ctypes.c_int]
         self.user32.UnregisterHotKey.restype = wintypes.BOOL
-        # ALT | CONTROL | NOREPEAT, virtual key D.
-        self.registered = bool(self.user32.RegisterHotKey(None, self.HOTKEY_ID, 0x4003, ord("D")))
-        if self.registered:
-            self.app.installNativeEventFilter(self.filter)
-        else:
+        candidate_id = (0x534A if self.HOTKEY_ID == 0x5349 else 0x5349) if self.registered else self.HOTKEY_ID
+        if not self.user32.RegisterHotKey(None, candidate_id, modifiers, virtual_key):
             code = ctypes.get_last_error()
-            self.error = (f"Could not register Ctrl+Alt+D (Windows error {code}). "
+            self.error = (f"Could not register {normalized} (Windows error {code}). "
                           "Another app may own it. Use Start drawing in the tray menu.")
-        return self.registered
+            return False
+        if self.registered:
+            self.user32.UnregisterHotKey(None, self.HOTKEY_ID)
+        else:
+            self.app.installNativeEventFilter(self.filter)
+        self.HOTKEY_ID = candidate_id
+        self.sequence = normalized
+        self.registered = True
+        self.error = ""
+        return True
 
     def unregister(self):
         if self.registered:

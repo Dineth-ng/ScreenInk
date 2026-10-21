@@ -2,17 +2,18 @@
 
 from PySide6.QtCore import QPoint, Qt, Signal
 from PySide6.QtGui import QKeySequence, QShortcut
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QToolButton, QVBoxLayout, QWidget
 
 from .annotations import Tool
 from .drawing import DrawingCanvas
 from .toolbar import FloatingToolbar
+from .settings import DEFAULT_SHORTCUTS
 
 
 class AnnotationOverlay(QWidget):
     closed = Signal()
 
-    def __init__(self, screen, screenshot):
+    def __init__(self, screen, screenshot, shortcuts=None):
         super().__init__()
         self.setWindowTitle("ScreenInk")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint |
@@ -36,20 +37,36 @@ class AnnotationOverlay(QWidget):
         controller.settings_changed.connect(self.sync_toolbar)
         controller.document.changed.connect(self.sync_toolbar)
         self.shortcuts = []
-        for key, callback in (
-            ("P", lambda: controller.set_tool(Tool.PEN)),
-            ("A", lambda: controller.set_tool(Tool.ARROW)),
-            ("R", lambda: controller.set_tool(Tool.RECTANGLE)),
-            ("H", lambda: controller.set_tool(Tool.HIGHLIGHTER)),
-            ("E", lambda: controller.set_tool(Tool.ERASER)),
-            ("Ctrl+Z", controller.undo), ("Ctrl+Y", controller.redo),
-            ("Ctrl+Shift+X", controller.clear), ("Escape", self.close),
-        ):
+        bindings = shortcuts or DEFAULT_SHORTCUTS
+        callbacks = {
+            "pen": lambda: controller.set_tool(Tool.PEN),
+            "arrow": lambda: controller.set_tool(Tool.ARROW),
+            "rectangle": lambda: controller.set_tool(Tool.RECTANGLE),
+            "highlighter": lambda: controller.set_tool(Tool.HIGHLIGHTER),
+            "eraser": lambda: controller.set_tool(Tool.ERASER),
+            "undo": controller.undo, "redo": controller.redo, "clear": controller.clear,
+            "close": self.close,
+        }
+        for name, callback in callbacks.items():
+            key = bindings[name]
             shortcut = QShortcut(QKeySequence(key), self)
             shortcut.setContext(Qt.ShortcutContext.WindowShortcut)
             shortcut.setAutoRepeat(False)
             shortcut.activated.connect(callback)
             self.shortcuts.append(shortcut)
+        if QKeySequence(bindings["close"]) != QKeySequence("Escape"):
+            escape = QShortcut(QKeySequence("Escape"), self)
+            escape.activated.connect(self.close)
+            self.shortcuts.append(escape)
+        for tool, button in self.toolbar.buttons.items():
+            button.setToolTip(f"{tool.value} ({bindings[tool.value.lower()]})")
+        self.toolbar.undo_button.setToolTip(f"Undo ({bindings['undo']})")
+        self.toolbar.redo_button.setToolTip(f"Redo ({bindings['redo']})")
+        for button in self.toolbar.findChildren(QToolButton):
+            if button.accessibleName() == "Clear":
+                button.setToolTip(f"Clear all ({bindings['clear']})")
+            elif button.accessibleName() == "Close":
+                button.setToolTip(f"Close ({bindings['close']}; Escape always available)")
         self.sync_toolbar()
 
     def sync_toolbar(self):
