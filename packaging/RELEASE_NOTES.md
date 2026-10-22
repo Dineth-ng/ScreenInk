@@ -1,12 +1,8 @@
-# ScreenInk 0.4.0 Beta 3 — Boards and chalk
+# ScreenInk 0.4.0 Beta 4 — Collapsible toolbar
 
-- Options > Board background: Blackboard, Whiteboard, Green board and custom colors.
-- Choose Desktop to restore the previous Freeze/Live background without losing annotations.
-- Pen > Chalk: stable textured pigment, rounded strokes and a full chalk-stick cursor.
-- Chalk supports colors, thickness, object erasing, Undo/Redo and Clear.
-- Board exports contain the board color and annotations, without dimming or desktop pixels.
-- Pointer, mode switching, Spotlight and Magnifier are disabled on boards.
+Click the ScreenInk logo to hide all other tools. The logo and drag handle remain
+visible; click the logo again to restore the toolbar. Drawing, shortcuts and
+current settings stay active. Works with boards and the floating Pointer toolbar.
 
-Extract the complete ZIP, exit the previous ScreenInk tray instance, then run
-ScreenInk.exe. Physical cursor appearance, mixed-DPI and real-app interactions
-still need manual Windows testing.
+Includes the board backgrounds and textured chalk from Beta 3.
+Extract the whole ZIP and exit the old tray instance before running the new EXE.

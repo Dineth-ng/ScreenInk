@@ -27,6 +27,30 @@ class BoardTests(unittest.TestCase):
         APP.processEvents()
         return overlay
 
+    def test_logo_collapses_and_restores_tools_in_both_window_modes(self):
+        o = self.overlay()
+        t = o.toolbar
+        for detached in (False, True):
+            t.set_pointer_window(detached)
+            expanded = t.size()
+            t.logo_button.click()
+            APP.processEvents()
+            self.assertTrue(t.collapsed)
+            self.assertLess(t.width(), 120)
+            self.assertLess(t.height(), expanded.height())
+            self.assertTrue(t.logo_button.isVisible())
+            self.assertTrue(t.handle.isVisible())
+            self.assertFalse(t.buttons[Tool.PEN].isVisible())
+            self.assertFalse(t.mode_button.isVisible())
+            o.sync_toolbar()
+            self.assertFalse(t.buttons[Tool.PEN].isVisible())
+            t.logo_button.click()
+            APP.processEvents()
+            self.assertFalse(t.collapsed)
+            self.assertTrue(t.buttons[Tool.PEN].isVisible())
+            self.assertTrue(t.mode_button.isVisible())
+            self.assertEqual(t.size(), expanded)
+
     def test_board_blocks_desktop_effects_and_restores_live(self):
         o = self.overlay()
         o.toggle_mode()

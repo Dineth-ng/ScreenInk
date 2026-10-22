@@ -30,16 +30,19 @@ class WrapLayout(QLayout):
     def heightForWidth(self, width):
         return self.arrange(QRect(0, 0, width, 0), True)
 
+    def visible_items(self):
+        return [item for item in self.items if not item.isEmpty()]
+
     def sizeHint(self):
         left, top, right, bottom = self.getContentsMargins()
-        return QSize(left + right + sum(i.sizeHint().width() for i in self.items) +
-                     max(0, len(self.items) - 1) * self.spacing(),
-                     top + bottom + max((i.sizeHint().height() for i in self.items), default=0))
+        return QSize(left + right + sum(i.sizeHint().width() for i in self.visible_items()) +
+                     max(0, len(self.visible_items()) - 1) * self.spacing(),
+                     top + bottom + max((i.sizeHint().height() for i in self.visible_items()), default=0))
 
     def minimumSize(self):
         left, top, right, bottom = self.getContentsMargins()
-        return QSize(max((i.minimumSize().width() for i in self.items), default=0) + left + right,
-                     max((i.minimumSize().height() for i in self.items), default=0) + top + bottom)
+        return QSize(max((i.minimumSize().width() for i in self.visible_items()), default=0) + left + right,
+                     max((i.minimumSize().height() for i in self.visible_items()), default=0) + top + bottom)
 
     def setGeometry(self, rect):
         super().setGeometry(rect)
@@ -49,7 +52,7 @@ class WrapLayout(QLayout):
         left, top, right, bottom = self.getContentsMargins()
         x, y, height = rect.x() + left, rect.y() + top, 0
         edge = rect.right() - right + 1
-        for item in self.items:
+        for item in self.visible_items():
             size = item.sizeHint()
             if x + size.width() > edge and height:
                 x, y, height = rect.x() + left, y + height + self.spacing(), 0

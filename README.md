@@ -3,7 +3,7 @@
 <p align="center"><strong>Explain it. Draw it. Right on your screen.</strong></p>
 <p align="center">A portable Windows annotation and presentation tool built with Python and PySide6.</p>
 
-**0.4.0-beta.3 | Windows 10/11 x64 | Milestone 4 test build**
+**0.4.0-beta.4 | Windows 10/11 x64 | Milestone 4 test build**
 
 [Download beta](https://github.com/Dineth-ng/ScreenInk/releases) · [Presentation guide](docs/PRESENTATION.md) · [Report a bug](https://github.com/Dineth-ng/ScreenInk/issues)
 
@@ -11,7 +11,7 @@
 
 ## Start in a minute
 
-1. Download `ScreenInk-0.4.0-beta.3-windows-x64.zip` from Releases.
+1. Download `ScreenInk-0.4.0-beta.4-windows-x64.zip` from Releases.
 2. Extract the **whole ZIP**. Keep the EXE, adjacent runtime DLLs, and `_internal` folder together.
 3. Run `ScreenInk.exe`. The home window explains the tools and lets you change shortcuts.
 4. Move the mouse to your chosen monitor, then press **Ctrl+Alt+D**.
@@ -21,7 +21,7 @@
 No Python installation or administrator privileges are required for the portable build. It is an unsigned beta; clean-machine and interactive Windows testing are still needed. The companion `.sha256` file can be compared with:
 
 ```powershell
-Get-FileHash .\ScreenInk-0.4.0-beta.3-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\ScreenInk-0.4.0-beta.4-windows-x64.zip -Algorithm SHA256
 ```
 
 ## Tools and default shortcuts
@@ -116,7 +116,7 @@ Tests cover drawing, history, styles, editor isolation, spotlight, magnifier, te
 .\dist\ScreenInk\ScreenInk.exe --smoke-test
 ```
 
-Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.3-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
+Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.4-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
 
 ## Platform limits
 
@@ -168,3 +168,10 @@ Manual checks: try each board color, draw with Chalk at 2/12 px, change ink colo
 erase a stroke, Undo/Redo, Clear/Undo, export full and region PNGs, then select
 Desktop and close/reopen the overlay. On Windows, also enter the board from Live
 Pointer mode and verify the toolbar, chalk cursor and Escape at 100%/150% scaling.
+
+## Hide the toolbar tools
+
+Click the ScreenInk logo to collapse the toolbar to just the logo and drag handle.
+Click it again to restore all tools. Drawing and keyboard shortcuts keep working;
+the compact toolbar can still be moved. This also works in Live Pointer mode.
+Manual check: collapse, draw, expand, and repeat in board and Live Pointer modes.

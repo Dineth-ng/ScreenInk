@@ -1,4 +1,4 @@
-# ScreenInk 0.4.0-beta.3 — Windows test build
+# ScreenInk 0.4.0-beta.4 — Windows test build
 
 This is a portable Windows x64 beta. Python and administrator access are not needed.
 
@@ -86,6 +86,6 @@ The global shortcut can conflict with another app; use Start drawing in the tray
 
 https://github.com/Dineth-ng/ScreenInk/issues
 
-Include version 0.4.0-beta.3, Windows version, monitor layout/scaling, selected
+Include version 0.4.0-beta.4, Windows version, monitor layout/scaling, selected
 tool, exact reproduction steps, expected result, and actual result. Include a
 picture or short recording if it helps; remove private information first.

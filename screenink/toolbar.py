@@ -68,6 +68,7 @@ class FloatingToolbar(QFrame):
         super().__init__(parent)
         self.owner = parent
         self.detached = False
+        self.collapsed = False
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("toolbar")
         self.setCursor(Qt.CursorShape.ArrowCursor)
@@ -89,15 +90,20 @@ class FloatingToolbar(QFrame):
         root.setContentsMargins(0, 0, 0, 0)
         row = WrapLayout()
         root.addLayout(row)
+        self.tool_row = row
         row.setContentsMargins(10, 8, 10, 8)
         row.setSpacing(4)
         self.handle = DragHandle(self)
         self.handle.dragged.connect(self.move_clamped)
         row.addWidget(self.handle)
-        brand = QLabel()
-        brand.setPixmap(application_icon().pixmap(24, 24))
-        brand.setToolTip("ScreenInk · drag the dotted handle to move")
-        row.addWidget(brand)
+        self.logo_button = QToolButton(self)
+        self.logo_button.setIcon(application_icon())
+        self.logo_button.setIconSize(QSize(24, 24))
+        self.logo_button.setAccessibleName("Hide tools")
+        self.logo_button.setToolTip("Hide tools (click the logo again to show)")
+        self.logo_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.logo_button.clicked.connect(self.toggle_collapsed)
+        row.addWidget(self.logo_button)
         self.separator(row)
         self.group = QButtonGroup(self)
         self.buttons = {}
@@ -132,6 +138,7 @@ class FloatingToolbar(QFrame):
         self.pen_styles.activated.connect(lambda i: self.pen_style_selected.emit(self.pen_styles.itemText(i)))
         row.addWidget(self.pen_styles)
         row = WrapLayout()
+        self.action_row = row
         row.setContentsMargins(10, 0, 10, 8)
         row.setSpacing(4)
         root.addLayout(row)
@@ -230,6 +237,22 @@ class FloatingToolbar(QFrame):
         options.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         row.addWidget(options)
         self.fit_to_parent()
+
+    def toggle_collapsed(self):
+        self.collapsed = not self.collapsed
+        self.options_menu.hide()
+        for row in (self.tool_row, self.action_row):
+            for index in range(row.count()):
+                widget = row.itemAt(index).widget()
+                if widget not in (self.handle, self.logo_button):
+                    widget.setVisible(not self.collapsed)
+            row.invalidate()
+        self.action_row.setContentsMargins(0, 0, 0, 0) if self.collapsed else self.action_row.setContentsMargins(10, 0, 10, 8)
+        self.logo_button.setAccessibleName("Show tools" if self.collapsed else "Hide tools")
+        self.logo_button.setToolTip("Show tools" if self.collapsed else "Hide tools (click the logo again to show)")
+        self.layout().invalidate()
+        self.fit_to_parent()
+        self.move_clamped(self.pos())
 
     def paintEvent(self, event):
         # Paint explicitly: stylesheet backgrounds can disappear when this
