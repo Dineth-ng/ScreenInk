@@ -20,7 +20,7 @@ def physical_region(region, logical_size, physical_size):
     return QRect(left, top, right - left, bottom - top).intersected(QRect(0, 0, physical_size.width(), physical_size.height()))
 
 
-def compose_screenshot(background, annotations, logical_size, include_dimming=True, region=None, spotlight=None, magnifier=None, board_color=None):
+def compose_screenshot(background, annotations, logical_size, include_dimming=True, region=None, spotlight=None, magnifier=None, board_color=None, darkness=.25):
     """Never grab widgets/desktop here: controls and cursor cannot enter the image."""
     if background.isNull():
         raise ValueError("No captured background is available.")
@@ -38,7 +38,7 @@ def compose_screenshot(background, annotations, logical_size, include_dimming=Tr
     painter = QPainter(image)
     try:
         if include_dimming and not (spotlight and spotlight.enabled):
-            painter.fillRect(image.rect(), QColor(0, 0, 0, 64))
+            painter.fillRect(image.rect(), QColor(0, 0, 0, round(255 * darkness)))
         painter.scale(image.width() / logical_size.width(), image.height() / logical_size.height())
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         if include_dimming and spotlight is not None:

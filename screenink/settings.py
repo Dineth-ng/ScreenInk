@@ -55,6 +55,8 @@ class AppSettings:
             self.shortcuts = dict(DEFAULT_SHORTCUTS)
         self.last_screenshot_folder = self.store.value("capture/last_folder",
             QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation) or QDir.homePath(), type=str)
+        from .preferences import load
+        self.preferences = load(self.store)
         self.capture_format = "PNG"
         self.export_dimming = self.store.value("capture/include_dimming", True, type=bool)
 

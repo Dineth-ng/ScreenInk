@@ -1,14 +1,14 @@
 """Startup home window with a tool guide and editable keyboard shortcuts."""
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QEvent, QTimer
 from PySide6.QtGui import QKeySequence
 from PySide6.QtWidgets import (QCheckBox, QFormLayout, QHBoxLayout, QLabel, QKeySequenceEdit,
                                QMainWindow, QPushButton, QScrollArea, QTabWidget,
-                               QVBoxLayout, QWidget)
+                               QVBoxLayout, QWidget, QMessageBox)
 
 from .branding import application_icon
 from .settings import ACTION_LABELS, DEFAULT_SHORTCUTS
-from .version import __version__
+from .version import __version__, PROJECT_URL, LICENSE_NAME
 
 
 class MainWindow(QMainWindow):
@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
     def __init__(self, shortcuts):
         super().__init__()
         self.allow_exit = False
+        self.minimize_to_tray = True
         self.setWindowTitle(f"ScreenInk {__version__}")
         self.setWindowIcon(application_icon())
         self.resize(780, 720)
@@ -27,6 +28,9 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("""
             QMainWindow, QWidget#home { background: #121b28; color: #e6edf7; }
             QLabel { color: #e6edf7; }
+            QCheckBox { color: #e6edf7; padding: 4px; }
+            QComboBox, QSpinBox, QLineEdit { color: #e6edf7; background: #24344a; padding: 5px; border: 1px solid #506984; border-radius: 5px; }
+            QComboBox QAbstractItemView { color: #e6edf7; background: #24344a; selection-background-color: #355578; }
             QTabWidget::pane { border: 1px solid #34465d; border-radius: 8px; }
             QTabBar::tab { background: #233247; color: #e6edf7; padding: 10px 20px; }
             QTabBar::tab:selected { background: #355578; }
@@ -50,7 +54,7 @@ class MainWindow(QMainWindow):
         logo = QLabel()
         logo.setPixmap(application_icon().pixmap(72, 72))
         heading.addWidget(logo)
-        title = QLabel(f"<h1>ScreenInk <small>Beta</small></h1>Explain it. Draw it. Right on your screen.")
+        title = QLabel(f"<h1>ScreenInk</h1>Explain it. Draw it. Right on your screen.")
         heading.addWidget(title, 1)
         layout.addLayout(heading)
         self.status = QLabel()
@@ -64,8 +68,11 @@ class MainWindow(QMainWindow):
         exit_button = QPushButton("Exit ScreenInk")
         exit_button.clicked.connect(lambda: self.exit_requested.emit())
         start_row.addWidget(exit_button)
+        about = QPushButton("About")
+        about.clicked.connect(self.show_about)
+        start_row.addWidget(about)
         layout.addLayout(start_row)
-        tabs = QTabWidget()
+        tabs = self.tabs = QTabWidget()
         layout.addWidget(tabs, 1)
         guide = QWidget()
         guide.setObjectName("home")
@@ -130,12 +137,22 @@ class MainWindow(QMainWindow):
         save_capture = QPushButton("Save screenshot preferences")
         save_capture.clicked.connect(lambda: self.capture_preferences_requested.emit(self.export_dimming.isChecked()))
         capture_layout.addWidget(save_capture)
+        reset_capture = QPushButton("Restore screenshot defaults (then Save)")
+        reset_capture.clicked.connect(lambda: self.export_dimming.setChecked(True))
+        capture_layout.addWidget(reset_capture)
         capture_layout.addStretch()
         tabs.addTab(capture_page, "Screenshots")
-        footer = QLabel("Closing this window keeps ScreenInk in the tray. Right-click its tray icon to reopen it or exit.")
+        footer = self.footer = QLabel("Closing this window keeps ScreenInk in the tray. Right-click its tray icon to reopen it or exit.")
         footer.setWordWrap(True)
         layout.addWidget(footer)
         self.refresh(shortcuts)
+
+    def show_about(self):
+        QMessageBox.about(self, "About ScreenInk",
+            f"<h2>ScreenInk {__version__}</h2>Screen annotation and teaching tools for Windows."
+            f"<p><a href='{PROJECT_URL}'>Project repository</a></p>"
+            f"<p>Application: {LICENSE_NAME} license. Qt/PySide6 and other dependencies "
+            "retain their own licenses. See THIRD_PARTY_NOTICES.md and licenses/ in the distribution.</p>")
 
     def request_apply(self):
         values = {name: editor.keySequence().toString(QKeySequence.SequenceFormat.PortableText)
@@ -183,7 +200,16 @@ class MainWindow(QMainWindow):
                            "Drag the toolbar by its dotted handle. The cursor's target center marks your drawing point."
                            + rows + "<p>Closing the overlay discards its drawings. Save a PNG or copy an image first if you want to keep it. No recording is included.</p>")
 
+    def changeEvent(self, event):
+        if event.type() == QEvent.Type.WindowStateChange and self.isMinimized() and self.minimize_to_tray:
+            QTimer.singleShot(0, self.hide)
+        super().changeEvent(event)
+
     def closeEvent(self, event):
+        if not self.minimize_to_tray:
+            self.exit_requested.emit()
+            event.accept()
+            return
         if self.allow_exit:
             event.accept()
             return

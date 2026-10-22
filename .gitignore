@@ -5,3 +5,6 @@ build/
 dist/
 release/
 *.spec
+!ScreenInk.spec
+
+packaging/windows-version.txt

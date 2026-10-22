@@ -3,7 +3,27 @@
 <p align="center"><strong>Explain it. Draw it. Right on your screen.</strong></p>
 <p align="center">A portable Windows annotation and presentation tool built with Python and PySide6.</p>
 
-**0.4.0-beta.4 | Windows 10/11 x64 | Milestone 4 test build**
+**1.0.0 local release candidate | Windows 11 x64 | Milestone 5**
+
+The 1.0.0 candidate is local only. Public release approval, clean-machine testing,
+OBS checks and final redistribution review are pending. The beta instructions
+below describe previous public downloads.
+
+Milestone 5 adds green/white branding, About, persistent general and drawing
+preferences, opt-in Windows startup, configurable screenshot naming, bounded
+history, optional private diagnostics and monitor-change recovery. It includes a
+maintained PyInstaller specification and per-user Inno Setup installer.
+
+- [Exact installer/build instructions](docs/INSTALLATION.md)
+- [User guide](docs/USER_GUIDE.md) and [shortcuts](docs/KEYBOARD_SHORTCUTS.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md) and [release checklist](docs/RELEASE_TESTING.md)
+- [Measured synthetic performance](docs/PERFORMANCE.json)
+- [MIT license](LICENSE), [dependency notices](THIRD_PARTY_NOTICES.md), [contributing](CONTRIBUTING.md), [changelog](CHANGELOG.md)
+
+Pinned toolchain: Python 3.14.6, PySide6 Essentials/Qt 6.12, PyInstaller 6.22.3,
+Inno Setup 6.7.3. CI produces artifacts only; it does not publish releases.
+ScreenInk has no analytics, uploads or automatic recording. Optional logs omit
+screen content, clipboard content, exception messages and variable values.
 
 [Download beta](https://github.com/Dineth-ng/ScreenInk/releases) · [Presentation guide](docs/PRESENTATION.md) · [Report a bug](https://github.com/Dineth-ng/ScreenInk/issues)
 

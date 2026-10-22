@@ -23,17 +23,10 @@ def main():
     build_environment["PATH"] = os.pathsep.join(map(str, (
         Path(sys.executable).parent, Path(sys.base_prefix), windows / "System32", windows,
     )))
-    subprocess.run([
-        sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--windowed",
-        "--onedir", "--name", "ScreenInk", "--icon", "screenink/assets/screenink.ico",
-        "--version-file", "packaging/windows-version.txt",
-        "--add-data", f"screenink/assets{os.pathsep}screenink/assets",
-        "--exclude-module", "PySide6.QtWebEngineCore",
-        "--exclude-module", "PySide6.QtWebEngineWidgets",
-        "--exclude-module", "PySide6.QtQml",
-        "--exclude-module", "PySide6.QtQuick",
-        "main.py",
-    ], cwd=ROOT, env=build_environment, check=True)
+    from version_metadata import generate
+    generate()
+    subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean",
+                    "ScreenInk.spec"], cwd=ROOT, env=build_environment, check=True)
     distribution = ROOT / "dist/ScreenInk"
     # Load the same Microsoft runtime as bundled Python before system DLLs.
     # These must sit beside the bootloader, as well as inside _internal.
@@ -48,6 +41,9 @@ def main():
     shutil.copyfile(ROOT / "docs/BETA_TESTING.md", distribution / "START_HERE.txt")
     shutil.copyfile(ROOT / "README.md", distribution / "README.md")
     shutil.copyfile(ROOT / "docs/PRESENTATION.md", distribution / "PRESENTATION.md")
+    for name in ("LICENSE", "THIRD_PARTY_NOTICES.md", "CHANGELOG.md"):
+        shutil.copyfile(ROOT / name, distribution / name)
+    shutil.copytree(ROOT / "licenses", distribution / "licenses", dirs_exist_ok=True)
     output = ROOT / "release"
     output.mkdir(exist_ok=True)
     filename = f"ScreenInk-{__version__}-windows-x64"

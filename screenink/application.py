@@ -27,6 +27,13 @@ class ScreenInkApplication(QObject):
         self.capture_pending = False
         self.settings = AppSettings()
         self.window = MainWindow(self.settings.shortcuts)
+        from .preferences_ui import PreferencesWidget
+        self.preferences_ui = PreferencesWidget(self.settings)
+        self.preferences_ui.applied.connect(self.apply_preferences)
+        self.window.tabs.addTab(self.preferences_ui, "Preferences")
+        self.dark_stylesheet = self.window.styleSheet()
+        self.apply_appearance()
+        self.app.styleHints().colorSchemeChanged.connect(lambda _: self.apply_appearance())
         self.window.drawing_requested.connect(self.start_drawing)
         self.window.shortcuts_requested.connect(self.apply_shortcuts)
         self.window.capture_preferences_requested.connect(self.apply_capture_preferences)
@@ -59,9 +66,46 @@ class ScreenInkApplication(QObject):
         self.tray.show()
         self.hotkey.register(self.settings.shortcuts["activate"])
         self.refresh_shortcuts()
-        self.window.show()
+        if "--startup" not in sys.argv:
+            self.window.show()
         if not self.hotkey.registered:
             QMessageBox.warning(self.window, "ScreenInk shortcut unavailable", self.hotkey.error)
+
+    def apply_appearance(self):
+        from PySide6.QtCore import Qt
+        p = self.settings.preferences
+        self.window.minimize_to_tray = p['minimize_to_tray']
+        self.window.footer.setText("Closing or minimizing keeps ScreenInk in the tray. Tray Exit quits."
+                                   if p['minimize_to_tray'] else "Closing this window exits ScreenInk.")
+        dark = p['theme'] == 'Dark' or (p['theme'] == 'System' and self.app.styleHints().colorScheme() == Qt.ColorScheme.Dark)
+        self.window.setStyleSheet(self.dark_stylesheet if dark else "QWidget {background:#f3f6f4;color:#162b23;} QPushButton,QLineEdit,QComboBox,QKeySequenceEdit {background:white;color:#162b23;padding:6px;}")
+        self.window.export_dimming.setStyleSheet("color: #e6edf7; padding: 8px 0;" if dark else "color: #162b23; padding: 8px 0;")
+
+    def apply_preferences(self, values, folder):
+        from .preferences import validate, save
+        from .startup import set_startup
+        old = self.settings.preferences
+        changed_startup = False
+        try:
+            values = validate(values)
+            if not Path(folder).is_dir():
+                raise ValueError('Choose an existing screenshot directory.')
+            if values['startup'] != old['startup']:
+                set_startup(values['startup'])
+                changed_startup = True
+            self.settings.remember_screenshot_folder(folder)
+            self.settings.preferences = save(self.settings.store, values)
+        except (ValueError, OSError) as exc:
+            if changed_startup:
+                try:
+                    set_startup(old['startup'])
+                except OSError:
+                    QMessageBox.warning(self.window, 'Startup registration', 'Startup could not be restored. Check Windows Startup Apps.')
+            QMessageBox.warning(self.window, 'Could not save preferences', str(exc))
+            return
+        self.apply_appearance()
+        self.window.refresh_capture_preferences(self.settings)
+        self.window.status.setText('Preferences saved. Drawing defaults apply to the next overlay.')
 
     def tray_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
@@ -162,6 +206,8 @@ class ScreenInkApplication(QObject):
     def shutdown(self):
         self.capture_timer.stop()
         self.hotkey.unregister()
+        from PySide6.QtCore import QThreadPool
+        QThreadPool.globalInstance().waitForDone()
         if self.overlay is not None:
             self.overlay.close()
         self.tray.hide()
@@ -174,10 +220,10 @@ def run():
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
     if sys.platform == "win32":
         import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ScreenInk.Desktop.Beta")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ScreenInk.Desktop")
     app = QApplication(sys.argv)
     app.setApplicationName("ScreenInk")
-    app.setApplicationDisplayName("ScreenInk Beta")
+    app.setApplicationDisplayName("ScreenInk")
     app.setApplicationVersion(__version__)
     app.setWindowIcon(application_icon())
     app.setOrganizationName("ScreenInk")
@@ -201,6 +247,10 @@ def run():
         QMessageBox.critical(None, "ScreenInk", "A system tray is required to run ScreenInk.")
         lock.unlock()
         return 1
+    from .installer_mutex import create_mutex
+    installer_mutex = create_mutex()
+    from .diagnostics import report_exception
+    sys.excepthook = report_exception
     controller = ScreenInkApplication(app)
     try:
         return app.exec()

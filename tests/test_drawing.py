@@ -6,7 +6,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 import math
 import unittest
 
-from PySide6.QtCore import QPoint, QPointF, QRect, Qt
+from PySide6.QtCore import QObject, Signal, QPoint, QPointF, QRect, Qt
 from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
@@ -19,7 +19,8 @@ from screenink.overlay import AnnotationOverlay
 APP = QApplication.instance() or QApplication([])
 
 
-class Screen:
+class Screen(QObject):
+    geometryChanged = Signal(object)
     def geometry(self):
         return QRect(-1000, 0, 1000, 700)
 

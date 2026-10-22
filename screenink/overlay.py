@@ -25,11 +25,21 @@ class AnnotationOverlay(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setGeometry(screen.geometry())
+        self.source_screen = screen
+        screen.geometryChanged.connect(self.screen_changed)
+        QApplication.instance().screenRemoved.connect(self.screen_removed)
+        self.settings = settings if settings is not None else AppSettings()
         self.canvas = DrawingCanvas(screenshot, self)
+        prefs = self.settings.preferences
+        self.canvas.darkness = prefs['darkness'] / 100
+        self.canvas.spotlight.opacity = prefs['spotlight_opacity'] / 100
+        self.canvas.controller.styles[Tool.PEN] = [QColor(prefs['pen_color']), prefs['pen_width']]
+        self.canvas.controller.set_tool(Tool(prefs['drawing_tool']))
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.canvas)
         self.toolbar = FloatingToolbar(self)
+        self.toolbar.dim_slider.setValue(prefs["spotlight_opacity"])
         self.desktop_capture = DesktopCapture(self, screen)
         self.modes = DisplayModeController(self.canvas, self.desktop_capture)
         self.pointer = PointerPassthrough(self)
@@ -39,7 +49,7 @@ class AnnotationOverlay(QWidget):
         self.modes.error.connect(self.notify)
         self.pointer_hotkey = GlobalHotkey(QApplication.instance(), 0x5350)
         self.pointer_hotkey.activated.connect(self.toggle_pointer)
-        self.capture = CaptureController(self, settings if settings is not None else AppSettings())
+        self.capture = CaptureController(self, self.settings)
         self.capture.notification.connect(self.notify)
         self.toast = QLabel(self)
         self.toast.setStyleSheet("background: #20364b; color: #edf8ff; padding: 10px 16px; border: 1px solid #55d8ed; border-radius: 8px;")
@@ -128,6 +138,14 @@ class AnnotationOverlay(QWidget):
         self.toolbar.spotlight_button.setToolTip(f"Spotlight ({bindings['spotlight']}): drag to move, wheel to resize; press again to disable")
         self.toolbar.magnifier_button.setToolTip(f"Magnifier ({bindings['magnifier']}): drag to move; Freeze mode only")
         self.sync_toolbar()
+
+    def screen_changed(self, geometry):
+        # Captured pixels no longer describe this monitor geometry. Reopen safely.
+        self.close()
+
+    def screen_removed(self, screen):
+        if screen == self.source_screen:
+            self.close()
 
     def sync_modes(self, *args):
         self.toolbar.set_pointer_window(self.pointer.enabled)
@@ -265,6 +283,8 @@ class AnnotationOverlay(QWidget):
             self.close()
 
     def notify(self, message):
+        if not self.settings.preferences["notifications"] and not any(word in message.lower() for word in ("fail", "error", "unavailable", "could not")):
+            return
         self.toast.setText(message)
         self.toast.adjustSize()
         self.toast.move(max(0, (self.width() - self.toast.width()) // 2), max(0, self.height() - self.toast.height() - 24))

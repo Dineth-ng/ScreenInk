@@ -1,0 +1,12 @@
+{
+  "install": true,
+  "start_menu": true,
+  "reopen_smoke_twice": true,
+  "mutex_blocks_update_uninstall": true,
+  "update_after_exit": true,
+  "uninstall": true,
+  "screenshot_preserved": true,
+  "settings_preserved": true,
+  "test_directory": "F:\\ScreenInk\\build\\installer-test-a6a61b53",
+  "clean_machine": false
+}

@@ -15,6 +15,7 @@ class CapturePreview(QDialog):
 
     def __init__(self, image, folder, parent):
         super().__init__(parent)
+        self.filename_format = "ScreenInk_%Y-%m-%d_%H%M%S"
         self.image = image
         self.folder = folder
         self.save_dialog = None
@@ -69,7 +70,8 @@ class CapturePreview(QDialog):
         dialog.setDefaultSuffix("png")
         if Path(self.folder).is_dir():
             dialog.setDirectory(self.folder)
-        dialog.selectFile(datetime.now().strftime("ScreenInk_%Y-%m-%d_%H%M%S.png"))
+        from .preferences import screenshot_name
+        dialog.selectFile(screenshot_name(self.filename_format))
         dialog.fileSelected.connect(self.save_requested.emit)
         dialog.finished.connect(self.dialog_finished)
         self.save_dialog = dialog

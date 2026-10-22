@@ -15,6 +15,12 @@ def main():
             (Path(tempfile.gettempdir()) / "ScreenInk-beta-smoke.log").write_text(
                 traceback.format_exc(), encoding="utf-8")
             return 1
+        if sys.platform == "win32":
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(None,
+                "ScreenInk could not start. Extract or reinstall the complete application folder, then try again.",
+                "ScreenInk startup error", 0x10)
+            return 1
         raise
 
 

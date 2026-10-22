@@ -86,12 +86,13 @@ class CaptureController(QObject):
             image = compose_screenshot(self.background if self.background is not None else canvas.screenshot, tuple(canvas.controller.document.items),
                                        canvas.size(), self.settings.export_dimming, region, canvas.spotlight,
                                        canvas.magnifier if self.overlay.toolbar.include_lens.isChecked() else None,
-                                       board_color=canvas.board_color)
+                                       board_color=canvas.board_color, darkness=canvas.darkness)
         except Exception as exc:
             self.restore_drawing()
             self.notification.emit(f"Capture failed: {exc}")
             return
         self.preview = CapturePreview(image, self.settings.last_screenshot_folder, self.overlay)
+        self.preview.filename_format = self.settings.preferences["filename_format"]
         self.preview.save_requested.connect(self.save)
         self.preview.copy_requested.connect(self.copy)
         self.preview.finished.connect(self.preview_closed)

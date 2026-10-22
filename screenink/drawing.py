@@ -17,6 +17,7 @@ class DrawingCanvas(QWidget):
     def __init__(self, screenshot, parent=None):
         super().__init__(parent)
         self.screenshot = screenshot
+        self.darkness = .25
         self.live = False
         self.board_color = None
         self.spotlight = Spotlight()
@@ -123,7 +124,7 @@ class DrawingCanvas(QWidget):
         elif not self.live:
             painter.drawPixmap(self.rect(), self.screenshot)
         if self.board_color is None and not self.live and not self.spotlight.enabled:
-            painter.fillRect(event.rect(), QColor(0, 0, 0, 64))
+            painter.fillRect(event.rect(), QColor(0, 0, 0, round(255 * self.darkness)))
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         if self.board_color is None:
             self.spotlight.paint(painter, self.size())

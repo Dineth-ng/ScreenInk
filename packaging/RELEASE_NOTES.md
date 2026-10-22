@@ -1,8 +1,16 @@
-# ScreenInk 0.4.0 Beta 4 — Collapsible toolbar
+# ScreenInk 1.0.0 — release notes draft
 
-Click the ScreenInk logo to hide all other tools. The logo and drag handle remain
-visible; click the logo again to restore the toolbar. Drawing, shortcuts and
-current settings stay active. Works with boards and the floating Pointer toolbar.
+Local candidate only; publication requires explicit approval.
 
-Includes the board backgrounds and textured chalk from Beta 3.
-Extract the whole ZIP and exit the old tray instance before running the new EXE.
+Adds consistent branding/About, persistent preferences, opt-in Windows startup,
+configurable pen/overlay defaults, screenshot naming, bounded undo history,
+privacy-conscious diagnostics and monitor-change recovery. Existing teaching,
+board, chalk, live/pointer and collapsible-toolbar features are retained.
+
+Includes a per-user Windows 11 x64 installer and portable one-folder build.
+No administrator rights, automatic startup, tracking or uploads. MIT application
+license; third-party components retain their own terms. Unsigned build.
+
+See docs/RELEASE_TESTING.md for actual evidence and outstanding clean-VM, OBS,
+mixed-DPI and redistribution-review gates. Do not describe this candidate as fully
+release-tested until those checks are completed.

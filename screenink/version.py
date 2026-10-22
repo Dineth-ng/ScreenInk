@@ -1,3 +1,4 @@
-"""Display and distribution version for the beta release."""
-
-__version__ = "0.4.0-beta.4"
+"""Single source for UI, build metadata, installer and archive version."""
+__version__ = "1.0.0"
+PROJECT_URL = "https://github.com/Dineth-ng/ScreenInk"
+LICENSE_NAME = "MIT"

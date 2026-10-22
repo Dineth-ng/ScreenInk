@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest.mock import MagicMock, patch
 
-from PySide6.QtCore import QPoint, QPointF, QRect, QRectF, QSettings, QSize
+from PySide6.QtCore import QObject, Signal, QPoint, QPointF, QRect, QRectF, QSettings, QSize
 from PySide6.QtGui import QColor, QImage, QPixmap
 from PySide6.QtTest import QSignalSpy, QTest
 from PySide6.QtWidgets import QApplication, QWidget
@@ -170,7 +170,8 @@ class CaptureWorkflowTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.settings = AppSettings(QSettings(str(Path(self.temporary.name) / "settings.ini"), QSettings.Format.IniFormat))
         self.settings.export_dimming = False
-        class Screen:
+        class Screen(QObject):
+            geometryChanged = Signal(object)
             def geometry(self):
                 return QRect(-1000, 0, 1000, 700)
         source = QPixmap(1250, 875)

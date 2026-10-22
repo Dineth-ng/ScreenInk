@@ -1,0 +1,67 @@
+{
+  "platform": "win32",
+  "qt_platform": "windows",
+  "screens": [
+    {
+      "geometry": [
+        0,
+        0,
+        2560,
+        1440
+      ],
+      "dpr": 1.0
+    },
+    {
+      "geometry": [
+        -1920,
+        -135,
+        1920,
+        1080
+      ],
+      "dpr": 1.0
+    }
+  ],
+  "workload": "Synthetic pixels; 1280x720 canvas, 3 seconds each, idle magnifier; process CPU normalized to one core. No before/after optimization claim.",
+  "results": [
+    {
+      "mode": "idle_tray",
+      "seconds": 3.007,
+      "cpu_one_core_percent": 0.0,
+      "rss_before_mib": 59.59,
+      "rss_after_mib": 59.67,
+      "input_samples": 0
+    },
+    {
+      "mode": "freeze",
+      "seconds": 2.995,
+      "cpu_one_core_percent": 0.0,
+      "rss_before_mib": 66.41,
+      "rss_after_mib": 70.73,
+      "input_samples": 0
+    },
+    {
+      "mode": "live",
+      "seconds": 3.012,
+      "cpu_one_core_percent": 0.0,
+      "rss_before_mib": 70.74,
+      "rss_after_mib": 70.75,
+      "input_samples": 0
+    },
+    {
+      "mode": "continuous_drawing",
+      "seconds": 3.022,
+      "cpu_one_core_percent": 10.34,
+      "rss_before_mib": 71.0,
+      "rss_after_mib": 71.41,
+      "input_samples": 377
+    },
+    {
+      "mode": "magnifier",
+      "seconds": 3.002,
+      "cpu_one_core_percent": 0.0,
+      "rss_before_mib": 71.43,
+      "rss_after_mib": 71.61,
+      "input_samples": 0
+    }
+  ]
+}
