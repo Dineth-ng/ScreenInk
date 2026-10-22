@@ -39,7 +39,7 @@ class ReleaseTests(unittest.TestCase):
             store.setValue('preferences/theme','Light')
             store.setValue('preferences/darkness',999)
             result=load(store)
-            self.assertEqual(result['pen_width'],4)
+            self.assertEqual(result['pen_width'],8)
             self.assertEqual(result['darkness'],25)
             self.assertEqual(result['theme'],'Light')
             self.assertFalse(result['startup'])

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.0 — local release candidate, not published
+- Tool-shaped cursors for all drawing tools and effects; Brush is the default pen style.
 - Green/white vector branding and About dialog.
 - General, annotation and screenshot preferences; opt-in Windows startup.
 - Validated per-user preferences and configurable overlay/export dimming.

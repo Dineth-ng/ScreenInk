@@ -7,7 +7,7 @@ from .annotations import Tool
 
 DEFAULTS = {
     "startup": False, "minimize_to_tray": True, "notifications": True,
-    "theme": "Dark", "pen_color": "#ff0000", "pen_width": 4,
+    "theme": "Dark", "pen_color": "#ff0000", "pen_width": 8, "pen_style": "Brush",
     "drawing_tool": "Pen", "darkness": 25, "spotlight_opacity": 65,
     "filename_format": "ScreenInk_%Y-%m-%d_%H%M%S", "diagnostics": False,
 }
@@ -32,6 +32,8 @@ def validate(values):
     if not QColor(result['pen_color']).isValid():
         raise ValueError('Choose a valid pen color, for example #00ff00.')
     result['pen_color'] = QColor(result['pen_color']).name()
+    if result['pen_style'] not in ('Solid','Dashed','Dotted','Marker','Brush','Chalk'):
+        raise ValueError('Choose a supported pen style.')
     if result['pen_width'] not in (2,4,6,8,12):
         raise ValueError('Choose a supported pen thickness.')
     if result['drawing_tool'] not in [t.value for t in Tool]:

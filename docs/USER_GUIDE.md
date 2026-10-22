@@ -27,3 +27,5 @@ History keeps up to 100 actions within a 32 MiB estimated geometry budget. Older
 undo states may be discarded. Active artwork itself is not a fixed memory budget.
 Optional logs contain exception classes and code locations only, rotate at 256 KiB
 with two backups, and live under the user application-data folder.
+
+New overlays default to Pen with Brush style (8 px for fresh settings). Preferences > Annotations lets you change the default style. Saved tool/color/width choices are retained. Each drawing tool now has a matching silhouette cursor with its exact hotspot marked, including Spotlight and Magnifier. Pointer mode uses the desktop application cursor; toolbar controls use a normal arrow.

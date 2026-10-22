@@ -22,6 +22,7 @@ class PreferencesWidget(QWidget):
         theme=QComboBox();theme.addItems(['Dark','Light','System']);general.addRow('Theme',theme);self.controls['theme']=theme
         color=QLineEdit();annotations.addRow('Default pen color (name or hex)',color);self.controls['pen_color']=color
         width=QComboBox();width.addItems(['2','4','6','8','12']);annotations.addRow('Pen thickness (px)',width);self.controls['pen_width']=width
+        style=QComboBox();style.addItems(['Solid','Dashed','Dotted','Marker','Brush','Chalk']);annotations.addRow('Default pen style',style);self.controls['pen_style']=style
         tool=QComboBox();tool.addItems([t.value for t in Tool]);annotations.addRow('Default tool',tool);self.controls['drawing_tool']=tool
         for name,label,minimum in [('darkness','Overlay darkness (%)',0),('spotlight_opacity','Spotlight opacity (%)',10)]:
             box=QSpinBox();box.setRange(minimum,90);annotations.addRow(label,box);self.controls[name]=box

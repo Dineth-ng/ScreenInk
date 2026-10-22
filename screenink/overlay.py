@@ -34,6 +34,8 @@ class AnnotationOverlay(QWidget):
         self.canvas.darkness = prefs['darkness'] / 100
         self.canvas.spotlight.opacity = prefs['spotlight_opacity'] / 100
         self.canvas.controller.styles[Tool.PEN] = [QColor(prefs['pen_color']), prefs['pen_width']]
+        self.canvas.controller.set_pen_style(prefs["pen_style"])
+        self.canvas.controller.styles[Tool.PEN][1] = prefs["pen_width"]
         self.canvas.controller.set_tool(Tool(prefs['drawing_tool']))
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -300,7 +302,10 @@ class AnnotationOverlay(QWidget):
             for button in self.toolbar.buttons.values():
                 button.setChecked(False)
             self.toolbar.group.setExclusive(True)
-            self.canvas.setCursor(Qt.CursorShape.SizeAllCursor)
+            from .cursors import drawing_cursor
+            self.canvas.setCursor(drawing_cursor("Magnifier" if self.canvas.magnifier_editing else "Spotlight",
+                                                 self.canvas.controller.color, self.canvas.controller.width,
+                                                 self.canvas.devicePixelRatioF()))
         else:
             self.canvas.update_cursor()
 
