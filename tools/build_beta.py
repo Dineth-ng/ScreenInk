@@ -47,6 +47,7 @@ def main():
                    cwd=distribution, env=smoke_environment, check=True, timeout=30)
     shutil.copyfile(ROOT / "docs/BETA_TESTING.md", distribution / "START_HERE.txt")
     shutil.copyfile(ROOT / "README.md", distribution / "README.md")
+    shutil.copyfile(ROOT / "docs/PRESENTATION.md", distribution / "PRESENTATION.md")
     output = ROOT / "release"
     output.mkdir(exist_ok=True)
     filename = f"ScreenInk-{__version__}-windows-x64"

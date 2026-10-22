@@ -5,21 +5,34 @@ from PySide6.QtGui import QColor, QPainterPath
 
 from .annotations import Annotation, Tool
 from .history import AnnotationDocument
+from .teaching_annotations import TextAnnotation, StepMarker
+from .laser import LaserTrail
 
 
 class DrawingController(QObject):
     invalidated = Signal(QRectF)
     settings_changed = Signal()
+    text_requested = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.document = AnnotationDocument(self)
+        self.laser = LaserTrail(self)
+        self.laser.invalidated.connect(self.invalidated)
         self.tool = Tool.PEN
         self.styles = {tool: [QColor("yellow" if tool == Tool.HIGHLIGHTER else "red"),
                               12 if tool == Tool.HIGHLIGHTER else 4] for tool in Tool}
         self.preview = None
         self.before = None
         self.previous = None
+        self.selected = None
+        self.drag_origin = None
+        self.next_step = 1
+        self.text_size = 28
+        self.text_bold = False
+        self.marker_size = 40
+        self.pen_style = "Solid"
+        self.document.changed.connect(self.update_step_number)
 
     @property
     def color(self):
@@ -39,6 +52,13 @@ class DrawingController(QObject):
         self.styles[self.tool][0] = QColor(color)
         self.settings_changed.emit()
 
+    def set_pen_style(self, style):
+        if style not in ("Solid", "Dashed", "Dotted", "Marker"):
+            raise ValueError("Unknown pen style")
+        self.finish_pending()
+        self.pen_style = style
+        self.settings_changed.emit()
+
     def set_width(self, width):
         self.finish_pending()
         if width not in (2, 4, 6, 8, 12):
@@ -48,18 +68,50 @@ class DrawingController(QObject):
 
     def press(self, point):
         self.cancel()
+        if self.tool == Tool.LASER:
+            self.laser.begin(point, self.color, self.width)
+            return
         self.before = tuple(self.document.items)
         self.previous = QPointF(point)
+        self.selected = None
+        self.drag_origin = None
+        if self.tool in (Tool.TEXT, Tool.STEP):
+            kind = TextAnnotation if self.tool == Tool.TEXT else StepMarker
+            self.selected = next((item for item in reversed(self.document.items)
+                                  if isinstance(item, kind) and item.bounds().contains(point)), None)
+            if self.selected is not None:
+                self.drag_origin = QPointF(point)
+            elif self.tool == Tool.TEXT:
+                self.before = None
+                self.text_requested.emit(TextAnnotation(QPointF(point), '', QColor(self.color), self.text_size, self.text_bold))
+            else:
+                self.document.items.append(StepMarker(QPointF(point), self.next_step, QColor(self.color), self.marker_size))
+                self.next_step += 1
+                self.document.record(self.before)
+                self.before = None
+            return
         if self.tool == Tool.ERASER:
             self.erase(point)
         else:
             self.preview = Annotation.begin(self.tool, self.color, self.width, point)
+            if self.tool == Tool.PEN:
+                self.preview.pen_style = self.pen_style
             self.invalidated.emit(self.preview.bounds())
 
     def move(self, point):
+        if self.tool == Tool.LASER:
+            self.laser.add(point)
+            return
         if self.before is None:
             return
-        if self.tool == Tool.ERASER:
+        if self.tool in (Tool.TEXT, Tool.STEP):
+            if self.selected is not None and self.drag_origin is not None and point != self.previous:
+                old = self.selected.bounds()
+                moved = self.selected.translated(point - self.previous)
+                self.document.items[self.document.items.index(self.selected)] = moved
+                self.selected = moved
+                self.invalidated.emit(old.united(moved.bounds()))
+        elif self.tool == Tool.ERASER:
             if point != self.previous:
                 self.erase(point)
         elif self.preview is not None:
@@ -69,6 +121,9 @@ class DrawingController(QObject):
         self.previous = QPointF(point)
 
     def release(self, point):
+        if self.tool == Tool.LASER:
+            self.laser.end(point)
+            return
         if self.before is None:
             return
         # Don't erase a second overlapping object on release of a stationary click.
@@ -81,6 +136,32 @@ class DrawingController(QObject):
         before, self.before = self.before, None
         self.document.record(before)
 
+    def replace_item(self, original, replacement=None):
+        before = tuple(self.document.items)
+        if original in self.document.items:
+            index = self.document.items.index(original)
+            if replacement is None:
+                self.document.items.pop(index)
+            else:
+                self.document.items[index] = replacement
+        elif replacement is not None:
+            self.document.items.append(replacement)
+        self.selected = replacement
+        self.document.record(before)
+
+    def delete_selected(self):
+        self.finish_pending()
+        if self.selected in self.document.items:
+            self.replace_item(self.selected)
+
+    def update_step_number(self):
+        last = next((i for i in reversed(self.document.items) if isinstance(i, StepMarker)), None)
+        self.next_step = last.number + 1 if last is not None else 1
+
+    def reset_steps(self):
+        self.next_step = 1
+        self.settings_changed.emit()
+
     def erase(self, point):
         sweep = QPainterPath(self.previous)
         sweep.lineTo(point + QPointF(0.01, 0))
@@ -92,10 +173,12 @@ class DrawingController(QObject):
                     break
 
     def finish_pending(self):
+        self.laser.drawing = False
         if self.before is not None:
             self.release(self.previous)
 
     def cancel(self):
+        self.laser.drawing = False
         if self.before is None:
             return
         if self.preview is not None:
@@ -114,5 +197,6 @@ class DrawingController(QObject):
         self.document.redo()
 
     def clear(self):
+        self.laser.clear()
         self.cancel()
         self.document.clear()

@@ -3,11 +3,13 @@
 from PySide6.QtCore import QPoint, QPointF, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (QButtonGroup, QComboBox, QFrame, QHBoxLayout,
-                               QLabel, QToolButton, QWidget)
+                               QLabel, QToolButton, QWidget, QVBoxLayout, QSlider, QCheckBox, QColorDialog, QMenu)
 
 from .annotations import Tool
 from .icons import tool_icon
 from .branding import application_icon
+from .palette import COLORS
+from .wrap_layout import WrapLayout
 
 
 class DragHandle(QWidget):
@@ -17,7 +19,7 @@ class DragHandle(QWidget):
         super().__init__(parent)
         self.setToolTip("Drag toolbar")
         self.setCursor(Qt.CursorShape.SizeAllCursor)
-        self.setFixedWidth(20)
+        self.setFixedSize(20, 32)
         self.offset = None
 
     def paintEvent(self, event):
@@ -43,6 +45,7 @@ class DragHandle(QWidget):
 
 
 class FloatingToolbar(QFrame):
+    pen_style_selected = Signal(str)
     tool_selected = Signal(object)
     color_selected = Signal(QColor)
     width_selected = Signal(int)
@@ -52,6 +55,13 @@ class FloatingToolbar(QFrame):
     close_requested = Signal()
     capture_requested = Signal()
     region_requested = Signal()
+    marker_size_selected = Signal(int)
+    reset_steps_requested = Signal()
+    magnifier_requested = Signal()
+    magnification_selected = Signal(int)
+    spotlight_requested = Signal()
+    spotlight_shape = Signal(bool)
+    spotlight_opacity = Signal(float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -60,7 +70,7 @@ class FloatingToolbar(QFrame):
         self.setStyleSheet("""
             QFrame#toolbar { background: #111c2c; border: 1px solid #40516b; border-radius: 16px; }
             QLabel { color: #a6b3c6; }
-            QToolButton { background: transparent; border: 1px solid transparent; border-radius: 9px; padding: 6px; }
+            QToolButton { color: #edf3fc; background: transparent; border: 1px solid transparent; border-radius: 9px; padding: 6px; }
             QToolButton:hover { background: #293d56; border-color: #465f7e; }
             QToolButton:checked { background: #16485d; border: 1px solid #55d8ed; }
             QToolButton:disabled { background: #172233; }
@@ -71,7 +81,10 @@ class FloatingToolbar(QFrame):
             QComboBox::drop-down { border: none; width: 16px; }
             QComboBox QAbstractItemView { color: #edf3fc; background: #303a49; selection-background-color: #43648b; }
         """)
-        row = QHBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        row = WrapLayout()
+        root.addLayout(row)
         row.setContentsMargins(10, 8, 10, 8)
         row.setSpacing(4)
         self.handle = DragHandle(self)
@@ -84,7 +97,7 @@ class FloatingToolbar(QFrame):
         self.separator(row)
         self.group = QButtonGroup(self)
         self.buttons = {}
-        for tool, key in zip(Tool, ("P", "A", "R", "H", "E")):
+        for tool, key in zip(Tool, ("P", "A", "R", "H", "E", "T", "N", "L")):
             button = self.button(tool.value, f"{tool.value} ({key})")
             button.setCheckable(True)
             self.group.addButton(button)
@@ -95,11 +108,12 @@ class FloatingToolbar(QFrame):
         self.colors = QComboBox()
         self.colors.setToolTip("Annotation color")
         self.colors.setAccessibleName("Annotation color")
-        for name in ("Red", "Green", "Yellow", "White", "Blue"):
+        for name, value in COLORS.items():
             swatch = QPixmap(14, 14)
-            swatch.fill(QColor(name.lower()))
-            self.colors.addItem(QIcon(swatch), name, name.lower())
-        self.colors.activated.connect(lambda index: self.color_selected.emit(QColor(self.colors.itemData(index))))
+            swatch.fill(QColor(value))
+            self.colors.addItem(QIcon(swatch), name, value)
+        self.colors.addItem("Custom...", None)
+        self.colors.activated.connect(self.choose_color)
         row.addWidget(self.colors)
         self.sizes = QComboBox()
         self.sizes.setToolTip("Brush thickness (logical pixels)")
@@ -108,7 +122,15 @@ class FloatingToolbar(QFrame):
             self.sizes.addItem(f"{width} px", width)
         self.sizes.activated.connect(lambda index: self.width_selected.emit(self.sizes.itemData(index)))
         row.addWidget(self.sizes)
-        self.separator(row)
+        self.pen_styles = QComboBox()
+        self.pen_styles.addItems(["Solid", "Dashed", "Dotted", "Marker"])
+        self.pen_styles.setToolTip("Pen stroke style; Highlighter keeps its own translucent style")
+        self.pen_styles.activated.connect(lambda i: self.pen_style_selected.emit(self.pen_styles.itemText(i)))
+        row.addWidget(self.pen_styles)
+        row = WrapLayout()
+        row.setContentsMargins(10, 0, 10, 8)
+        row.setSpacing(4)
+        root.addLayout(row)
         self.capture_button = self.button("Capture", "Capture full screen (Ctrl+Shift+S)")
         self.region_button = self.button("Region", "Capture region (Ctrl+Shift+R)")
         self.capture_button.setProperty("accent", True)
@@ -126,7 +148,96 @@ class FloatingToolbar(QFrame):
                                (self.button("Close", "Close overlay (Esc)"), self.close_requested)):
             button.clicked.connect(lambda checked=False, s=signal: s.emit())
             row.addWidget(button)
-        self.adjustSize()
+        self.presentation_row = QVBoxLayout()
+        self.presentation_row.setContentsMargins(10, 0, 10, 8)
+        options_widget = QWidget()
+        options_widget.setStyleSheet("QWidget {background:#111c2c; color:#edf3fc;} QComboBox {background:#203047; padding:6px;} QToolButton {color:#edf3fc;}")
+        options_widget.setLayout(self.presentation_row)
+        self.options_menu = QMenu(self)
+        from PySide6.QtWidgets import QWidgetAction
+        options_action = QWidgetAction(self.options_menu)
+        options_action.setDefaultWidget(options_widget)
+        self.options_menu.addAction(options_action)
+        self.spotlight_button = self.button("Spotlight", "Spotlight (S): drag to move, wheel to resize")
+        self.spotlight_button.setCheckable(True)
+        self.spotlight_button.clicked.connect(self.spotlight_requested)
+        row.addWidget(self.spotlight_button)
+        self.spotlight_shapes = QComboBox()
+        self.spotlight_shapes.addItems(["Circle", "Rectangle"])
+        self.spotlight_shapes.setToolTip("Spotlight shape")
+        self.spotlight_shapes.activated.connect(lambda i: self.spotlight_shape.emit(i == 0))
+        self.presentation_row.addWidget(QLabel("Spotlight shape and dimming"))
+        self.presentation_row.addWidget(self.spotlight_shapes)
+        self.dim_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dim_slider.setRange(10, 90)
+        self.dim_slider.setValue(65)
+        self.dim_slider.setFixedWidth(80)
+        self.dim_slider.setToolTip("Spotlight dimming: 10-90%")
+        self.dim_slider.valueChanged.connect(lambda v: self.spotlight_opacity.emit(v / 100))
+        self.presentation_row.addWidget(self.dim_slider)
+        self.marker_sizes = QComboBox()
+        self.marker_sizes.setToolTip("Numbered marker diameter")
+        for size in (24, 32, 40, 56, 72):
+            self.marker_sizes.addItem(f"Step {size}px", size)
+        self.marker_sizes.setCurrentIndex(2)
+        self.marker_sizes.activated.connect(lambda i: self.marker_size_selected.emit(self.marker_sizes.itemData(i)))
+        self.presentation_row.addWidget(self.marker_sizes)
+        self.reset_steps_button = self.button("Step", "Reset next marker number to 1")
+        self.reset_steps_button.setText("Reset 1")
+        self.reset_steps_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self.reset_steps_button.clicked.connect(self.reset_steps_requested)
+        self.presentation_row.addWidget(self.reset_steps_button)
+        self.magnifier_button = self.button("Magnifier", "Magnifier (M): drag lens to move")
+        self.magnifier_button.setCheckable(True)
+        self.magnifier_button.clicked.connect(self.magnifier_requested)
+        row.addWidget(self.magnifier_button)
+        self.zoom = QComboBox()
+        self.zoom.addItems(["2x", "3x", "4x"])
+        self.zoom.setToolTip("Magnification")
+        self.zoom.activated.connect(lambda i: self.magnification_selected.emit(i + 2))
+        self.presentation_row.addWidget(QLabel("Lens magnification"))
+        self.presentation_row.addWidget(self.zoom)
+        self.include_lens = QCheckBox("Export lens")
+        self.include_lens.setToolTip("Include the magnifier in screenshots")
+        self.include_lens.setStyleSheet("color: #edf3fc")
+        self.presentation_row.addWidget(self.include_lens)
+        self.mode_button = self.button("", "Freeze / Live (F)")
+        self.pointer_button = self.button("", "Drawing / Pointer (Ctrl+Space)")
+        for button in (self.mode_button, self.pointer_button):
+            button.setCheckable(True)
+            button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+            button.setStyleSheet("color: #edf3fc")
+            row.addWidget(button)
+        options = self.button("", "Presentation options: spotlight shape/dimming, marker size/reset, lens zoom/export")
+        options.setText("Options")
+        options.setStyleSheet("color: #edf3fc")
+        options.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        options.setMenu(self.options_menu)
+        options.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        row.addWidget(options)
+        self.fit_to_parent()
+
+    def choose_color(self, index):
+        value = self.colors.itemData(index)
+        if value is not None:
+            self.color_selected.emit(QColor(value))
+            return
+        picker = QColorDialog(self.current_color, self.window())
+        picker.setWindowTitle("Annotation color")
+        picker.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
+        picker.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        picker.setModal(True)
+        picker.colorSelected.connect(self.color_selected)
+        picker.finished.connect(lambda result: self.show_color(self.current_color))
+        picker.open()
+
+    def show_color(self, color):
+        self.current_color = QColor(color)
+        index = self.colors.findData(color.name())
+        if index < 0:
+            index = self.colors.count() - 1
+            self.colors.setItemText(index, color.name())
+        self.colors.setCurrentIndex(index)
 
     def separator(self, row):
         line = QFrame(self)
@@ -143,6 +254,12 @@ class FloatingToolbar(QFrame):
         button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         return button
 
+    def fit_to_parent(self):
+        frame = self.frameWidth() * 2
+        width = min(self.layout().sizeHint().width() + frame, max(180, self.parentWidget().width() - 16))
+        self.setFixedWidth(width)
+        self.setFixedHeight(self.layout().heightForWidth(width - frame) + frame)
+
     def move_clamped(self, point):
         parent = self.parentWidget()
         self.move(max(0, min(point.x(), parent.width() - self.width())),
@@ -150,12 +267,12 @@ class FloatingToolbar(QFrame):
 
     def sync(self, controller):
         self.buttons[controller.tool].setChecked(True)
-        color_name = next((name for name in ("red", "green", "yellow", "white", "blue")
-                           if QColor(name) == controller.color), "red")
-        self.colors.setCurrentIndex(self.colors.findData(color_name))
+        self.show_color(controller.color)
+        self.pen_styles.setCurrentText(controller.pen_style)
+        self.pen_styles.setEnabled(controller.tool == Tool.PEN)
         self.sizes.setCurrentIndex(self.sizes.findData(controller.width))
         enabled = controller.tool != Tool.ERASER
         self.colors.setEnabled(enabled)
-        self.sizes.setEnabled(enabled)
+        self.sizes.setEnabled(controller.tool in (Tool.PEN, Tool.ARROW, Tool.RECTANGLE, Tool.HIGHLIGHTER, Tool.LASER))
         self.undo_button.setEnabled(bool(controller.document.undo_stack))
         self.redo_button.setEnabled(bool(controller.document.redo_stack))

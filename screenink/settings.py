@@ -5,13 +5,13 @@ from PySide6.QtGui import QKeySequence
 
 
 DEFAULT_SHORTCUTS = {
-    "activate": "Ctrl+Alt+D", "pen": "P", "arrow": "A", "rectangle": "R",
+    "laser": "L", "mode": "F", "pointer": "Ctrl+Space", "magnifier": "M", "text": "T", "step": "N", "spotlight": "S", "activate": "Ctrl+Alt+D", "pen": "P", "arrow": "A", "rectangle": "R",
     "highlighter": "H", "eraser": "E", "undo": "Ctrl+Z", "redo": "Ctrl+Y",
     "clear": "Ctrl+Shift+X", "close": "Esc",
     "capture_full": "Ctrl+Shift+S", "capture_region": "Ctrl+Shift+R",
 }
 ACTION_LABELS = {
-    "activate": "Activate drawing (global)", "pen": "Pen", "arrow": "Arrow",
+    "laser": "Laser pointer", "mode": "Freeze / Live", "pointer": "Drawing / Pointer (global while overlay is open)", "magnifier": "Magnifier", "text": "Text", "step": "Numbered steps", "spotlight": "Spotlight", "activate": "Activate drawing (global)", "pen": "Pen", "arrow": "Arrow",
     "rectangle": "Rectangle", "highlighter": "Highlighter", "eraser": "Eraser",
     "undo": "Undo", "redo": "Redo", "clear": "Clear all", "close": "Close overlay",
     "capture_full": "Capture full screen", "capture_region": "Capture region",
@@ -42,11 +42,11 @@ class AppSettings:
                   for name, default in DEFAULT_SHORTCUTS.items()}
         # Upgrading must not steal an existing custom shortcut for a new action.
         used = {QKeySequence(value).toString(QKeySequence.SequenceFormat.PortableText)
-                for name, value in values.items() if name not in ("capture_full", "capture_region")
-                or self.store.contains(f"shortcuts/{name}")}
-        for name, letter in (("capture_full", "S"), ("capture_region", "R")):
+                for name, value in values.items() if self.store.contains(f"shortcuts/{name}")}
+        for name, default in DEFAULT_SHORTCUTS.items():
             if not self.store.contains(f"shortcuts/{name}"):
-                candidates = [values[name], f"Ctrl+Alt+Shift+{letter}"] + [f"Ctrl+Alt+Shift+F{i}" for i in range(1, 25)]
+                letter = default[-1] if default[-1].isalpha() else 'K'
+                candidates = [default, f"Ctrl+Alt+Shift+{letter.upper()}"] + [f"Ctrl+Alt+Shift+F{i}" for i in range(1, 25)]
                 values[name] = next(candidate for candidate in candidates if candidate not in used)
                 used.add(values[name])
         try:

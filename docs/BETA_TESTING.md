@@ -1,4 +1,4 @@
-# ScreenInk 0.3.0-beta.1 — Windows test build
+# ScreenInk 0.4.0-beta.1 — Windows test build
 
 This is a portable Windows x64 beta. Python and administrator access are not needed.
 
@@ -23,7 +23,16 @@ Duplicate shortcuts are rejected, and failed global changes keep the previous
 registration. Preferences persist after restart. Close the home window to hide
 it; double-click the tray or use Open ScreenInk / Settings to reopen it.
 
+## Presentation testing
+
+See [PRESENTATION.md](PRESENTATION.md) for all new controls and the detailed Windows checklist.
+Live/Pointer mode needs interactive testing; offscreen tests do not verify native click-through.
+Use Ctrl+Space or tray Return to Drawing Mode to recover mouse input.
+
 ## Tools
+
+S: Spotlight | T: Text | N: Steps | M: Magnifier | L: Laser
+F: Freeze/Live | Ctrl+Space: Drawing/Pointer (Live only)
 
 P: Pen | A: Arrow | R: Rectangle | H: Highlighter | E: Object eraser
 Ctrl+Z: Undo | Ctrl+Y: Redo | Ctrl+Shift+X: Clear all | Escape: Close overlay
@@ -47,7 +56,7 @@ to drawing. The Screenshots tab controls export dimming and remembers your folde
 - [ ] Duplicate/blank shortcuts show useful errors; a conflicting global key leaves the previous key working.
 - [ ] Main-window Close hides to tray; tray Open restores it; Exit ScreenInk quits fully.
 - [ ] Ctrl+Alt+D opens the correct monitor; Escape closes only the overlay.
-- [ ] Pen curves are smooth; all five colors and widths work.
+- [ ] Pen curves are smooth; all preset/custom colors and five widths work.
 - [ ] Arrows point correctly in every direction and preview while dragging.
 - [ ] Rectangle previews work in every drag direction; interiors stay transparent.
 - [ ] Highlighter starts yellow and is translucent.
@@ -77,6 +86,6 @@ The global shortcut can conflict with another app; use Start drawing in the tray
 
 https://github.com/Dineth-ng/ScreenInk/issues
 
-Include version 0.3.0-beta.1, Windows version, monitor layout/scaling, selected
+Include version 0.4.0-beta.1, Windows version, monitor layout/scaling, selected
 tool, exact reproduction steps, expected result, and actual result. Include a
 picture or short recording if it helps; remove private information first.

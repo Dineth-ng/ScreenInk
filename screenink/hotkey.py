@@ -25,6 +25,8 @@ def windows_shortcut(sequence):
         raise ValueError("The global shortcut needs Ctrl, Alt, or Win with a letter, number, or F1–F24.")
     if ord("A") <= key <= ord("Z") or ord("0") <= key <= ord("9"):
         virtual_key = key
+    elif key == Qt.Key.Key_Space:
+        virtual_key = 0x20
     elif Qt.Key.Key_F1 <= key <= Qt.Key.Key_F24:
         virtual_key = 0x70 + key - Qt.Key.Key_F1
     else:
@@ -50,8 +52,10 @@ class GlobalHotkey(QObject):
     activated = Signal()
     HOTKEY_ID = 0x5349
 
-    def __init__(self, app):
+    def __init__(self, app, base_id=0x5349):
         super().__init__(app)
+        self.base_id = base_id
+        self.HOTKEY_ID = base_id
         self.app = app
         self.registered = False
         self.error = ""
@@ -76,7 +80,7 @@ class GlobalHotkey(QObject):
         self.user32.RegisterHotKey.restype = wintypes.BOOL
         self.user32.UnregisterHotKey.argtypes = [wintypes.HWND, ctypes.c_int]
         self.user32.UnregisterHotKey.restype = wintypes.BOOL
-        candidate_id = (0x534A if self.HOTKEY_ID == 0x5349 else 0x5349) if self.registered else self.HOTKEY_ID
+        candidate_id = (self.base_id + 1 if self.HOTKEY_ID == self.base_id else self.base_id) if self.registered else self.HOTKEY_ID
         if not self.user32.RegisterHotKey(None, candidate_id, modifiers, virtual_key):
             code = ctypes.get_last_error()
             self.error = (f"Could not register {normalized} (Windows error {code}). "

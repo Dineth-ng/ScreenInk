@@ -7,6 +7,7 @@ from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QColor, QImage, QPixmap
 
 from .annotations import Tool
+from .teaching_annotations import TextAnnotation, StepMarker
 from .branding import application_icon
 from .overlay import AnnotationOverlay
 from .window import MainWindow
@@ -21,7 +22,7 @@ def run(app):
     home = MainWindow(DEFAULT_SHORTCUTS)
     home.show()
     app.processEvents()
-    if len(home.editors) != 12 or home.grab().isNull():
+    if len(home.editors) != len(DEFAULT_SHORTCUTS) or home.grab().isNull():
         return 5
     home.hide()
     image = QPixmap(800, 600)
@@ -40,6 +41,13 @@ def run(app):
     controller.undo()
     if len(controller.document.items) != 4:
         return 4
+    controller.replace_item(None, TextAnnotation(QPointF(50, 50), "Input", QColor("white")))
+    controller.set_tool(Tool.STEP)
+    controller.press(QPointF(300, 300))
+    if not isinstance(controller.document.items[-1], StepMarker):
+        return 9
+    overlay.toggle_spotlight()
+    overlay.toggle_magnifier()
     captured = compose_screenshot(image, controller.document.items, overlay.canvas.size(), False, QRectF(50, 100, 300, 300))
     if captured.isNull():
         return 6
@@ -48,6 +56,11 @@ def run(app):
         filename = write_png(captured, str(Path(folder) / "check.png"))
         if QImage(filename).size() != captured.size():
             return 7
+    overlay.toggle_mode()
+    if not overlay.canvas.live:
+        return 10
+    # Reuse synthetic pixels; never take a real desktop image during smoke tests.
+    overlay.modes.freeze_captured(image, "")
     overlay.capture.start()
     app.processEvents()
     if overlay.capture.preview is None:

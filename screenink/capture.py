@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
+from PySide6.QtWidgets import QApplication
 
 from .capture_preview import CapturePreview
 from .clipboard import copy_image
@@ -18,6 +19,9 @@ class CaptureController(QObject):
         super().__init__(overlay)
         self.overlay = overlay
         self.settings = settings
+        self.pending = False
+        self.background = None
+        self.was_live = False
         self.selector = None
         self.preview = None
         self.exporter = ImageExporter(self)
@@ -25,16 +29,42 @@ class CaptureController(QObject):
 
     @property
     def active(self):
-        return self.selector is not None or self.preview is not None
+        return self.pending or self.selector is not None or self.preview is not None
 
     def start(self, region=False):
         if self.active:
             if self.preview is not None:
                 self.preview.raise_()
             return
+        if self.overlay.desktop_capture.pending or QApplication.activeModalWidget() is not None:
+            return
+        if not self.overlay.return_to_drawing():
+            return
         self.overlay.canvas.controller.finish_pending()
         self.overlay.canvas.setEnabled(False)
         self.overlay.toolbar.setEnabled(False)
+        self.was_live = self.overlay.modes.live
+        if self.was_live:
+            self.pending = True
+            self.overlay.desktop_capture.request(lambda image, error: self.live_captured(image, error, region))
+        else:
+            self.background = self.overlay.canvas.screenshot
+            self.begin_selection(region)
+
+    def live_captured(self, image, error, region):
+        self.pending = False
+        if error:
+            self.restore_drawing()
+            self.notification.emit(f"Capture failed: {error}")
+            return
+        self.background = image
+        # Freeze only for the selection/preview; restore live on Cancel/close.
+        self.overlay.canvas.screenshot = image
+        self.overlay.canvas.live = False
+        self.overlay.canvas.update()
+        self.begin_selection(region)
+
+    def begin_selection(self, region):
         if region:
             self.overlay.toolbar.hide()
             self.selector = RegionSelection(self.overlay.canvas.screenshot.size(), self.overlay)
@@ -53,8 +83,9 @@ class CaptureController(QObject):
     def compose(self, region=None):
         canvas = self.overlay.canvas
         try:
-            image = compose_screenshot(canvas.screenshot, tuple(canvas.controller.document.items),
-                                       canvas.size(), self.settings.export_dimming, region)
+            image = compose_screenshot(self.background if self.background is not None else canvas.screenshot, tuple(canvas.controller.document.items),
+                                       canvas.size(), self.settings.export_dimming, region, canvas.spotlight,
+                                       canvas.magnifier if self.overlay.toolbar.include_lens.isChecked() else None)
         except Exception as exc:
             self.restore_drawing()
             self.notification.emit(f"Capture failed: {exc}")
@@ -76,6 +107,9 @@ class CaptureController(QObject):
         self.restore_drawing()
 
     def restore_drawing(self):
+        self.overlay.canvas.live = self.overlay.modes.live
+        self.overlay.canvas.update()
+        self.background = None
         self.overlay.canvas.setEnabled(True)
         self.overlay.toolbar.setEnabled(True)
         self.overlay.toolbar.show()

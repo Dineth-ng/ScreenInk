@@ -64,6 +64,27 @@ def tool_icon(name, color=None):
             p.drawLine(x, y, x, y + dy * 6)
         p.setPen(QPen(QColor("#55d8ed"), 1, Qt.PenStyle.DashLine))
         p.drawRect(8, 8, 8, 8)
+    elif name == "Laser":
+        p.drawEllipse(QRectF(8, 8, 8, 8))
+        for x, y, dx, dy in ((12, 2, 0, 3), (12, 22, 0, -3), (2, 12, 3, 0), (22, 12, -3, 0)):
+            p.drawLine(x, y, x + dx, y + dy)
+    elif name == "Spotlight":
+        p.drawEllipse(QRectF(4, 4, 16, 16))
+        p.drawEllipse(QRectF(8, 8, 8, 8))
+    elif name == "Text":
+        p.drawLine(5, 5, 19, 5)
+        p.drawLine(12, 5, 12, 20)
+        p.drawLine(8, 20, 16, 20)
+    elif name == "Step":
+        p.drawEllipse(QRectF(3, 3, 18, 18))
+        p.drawLine(10, 9, 12, 7)
+        p.drawLine(12, 7, 12, 17)
+        p.drawLine(9, 17, 15, 17)
+    elif name == "Magnifier":
+        p.drawEllipse(QRectF(3, 3, 13, 13))
+        p.drawLine(15, 15, 21, 21)
+        p.drawLine(6, 9, 13, 9)
+        p.drawLine(9, 6, 9, 13)
     elif name == "Close":
         p.drawLine(6, 6, 18, 18)
         p.drawLine(18, 6, 6, 18)

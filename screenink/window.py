@@ -83,8 +83,8 @@ class MainWindow(QMainWindow):
         settings.setObjectName("home")
         settings_layout = QVBoxLayout(settings)
         note = QLabel("Click a shortcut field and press the keys you want. Click Apply to save.\n"
-                      "The global shortcut supports Ctrl/Alt/Win + a letter, number, or F1–F24.\n"
-                      "Tool shortcuts work while drawing. Escape always closes the overlay.")
+                      "Global shortcuts support Ctrl/Alt/Win + a letter, number, Space, or F1–F24.\n"
+                      "Tool shortcuts work while drawing. Ctrl+Space is global while the overlay is open.")
         note.setWordWrap(True)
         settings_layout.addWidget(note)
         form = QFormLayout()
@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
         capture_page = QWidget()
         capture_page.setObjectName("home")
         capture_layout = QVBoxLayout(capture_page)
-        info = QLabel("Capture your frozen screen and annotations, without the toolbar or cursor.\n"
+        info = QLabel("Capture the frozen or live desktop and annotations, without the toolbar or cursor.\n"
                       "Choose full screen or a region, then Save a PNG or Copy the image.\n"
                       "Screenshots stay local. Nothing is uploaded or captured automatically.")
         info.setWordWrap(True)
@@ -157,6 +157,13 @@ class MainWindow(QMainWindow):
         self.status.setText(f"Ready — press {activation} from any app, or click Start drawing."
                             if registered else "Global shortcut unavailable. Click Start drawing, or choose a different shortcut.")
         descriptions = {
+            "laser": "Drag a colored laser trail that fades in about a second. It is temporary and excluded from PNGs and history.",
+            "spotlight": "Circle or rectangle focus area. Drag to move, wheel to resize; Options sets shape/dimming. Toggle off to restore view.",
+            "text": "Click to type; Apply to save. Drag existing text, double-click to edit; Delete removes the selected label.",
+            "step": "Click to number steps; drag existing circles. Options sets diameter or resets numbering. Delete removes selection.",
+            "magnifier": "Move a 2x/3x/4x lens over frozen pixels. Options controls zoom and optional screenshot inclusion.",
+            "mode": "Switch Freeze / Live. Live lets the desktop keep updating; returning to Freeze takes a fresh image.",
+            "pointer": "In Live mode, pass real clicks to other apps. Press again or use tray Return to Drawing Mode to recover.",
             "pen": "Smooth freehand drawing and dots.", "arrow": "Drag from tail to tip in any direction.",
             "rectangle": "Drag opposite corners to frame content; no fill.",
             "highlighter": "Translucent strokes at 35% opacity; starts yellow.",
@@ -171,7 +178,7 @@ class MainWindow(QMainWindow):
                        for name, description in descriptions.items())
         self.guide.setText("<h3>Start an explanation</h3>Move your pointer to the monitor you want, then use the global shortcut. "
                            "The screen freezes and dims while you draw.<br>"
-                           "<b>Colors:</b> red, green, yellow, white, blue. "
+                           "<b>Colors:</b> 12 presets plus custom RGB/hex. <b>Pen styles:</b> solid, dashed, dotted, translucent marker. "
                            "<b>Widths:</b> 2, 4, 6, 8, 12 px. "
                            "Drag the toolbar by its dotted handle. The cursor's target center marks your drawing point."
                            + rows + "<p>Closing the overlay discards its drawings. Save a PNG or copy an image first if you want to keep it. No recording is included.</p>")

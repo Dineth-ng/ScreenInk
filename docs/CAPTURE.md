@@ -1,3 +1,5 @@
+> Milestone 3 baseline: for Live-mode capture and presentation effects, see [PRESENTATION.md](PRESENTATION.md).
+
 # Milestone 3: screenshot pipeline
 
 The original tray, Windows shortcut registration, annotation data model, rendering,

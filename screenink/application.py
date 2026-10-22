@@ -44,6 +44,9 @@ class ScreenInkApplication(QObject):
         self.start_action = QAction("Start drawing", self.menu)
         self.start_action.triggered.connect(self.start_drawing)
         self.menu.addAction(self.start_action)
+        recover = QAction("Return to Drawing Mode", self.menu)
+        recover.triggered.connect(self.start_drawing)
+        self.menu.addAction(recover)
         self.menu.addSeparator()
         exit_action = QAction("Exit", self.menu)
         exit_action.triggered.connect(self.exit_application)
@@ -91,6 +94,7 @@ class ScreenInkApplication(QObject):
         try:
             shortcuts = normalize_shortcuts(values)
             windows_shortcut(shortcuts["activate"])
+            windows_shortcut(shortcuts["pointer"])
         except ValueError as exc:
             QMessageBox.warning(self.window, "Check shortcuts", str(exc))
             return
@@ -120,6 +124,7 @@ class ScreenInkApplication(QObject):
     @Slot()
     def start_drawing(self):
         if self.overlay is not None:
+            self.overlay.return_to_drawing()
             self.overlay.raise_()
             self.overlay.activateWindow()
             return

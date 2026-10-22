@@ -34,7 +34,7 @@ class ShortcutTests(unittest.TestCase):
     def test_global_mapping(self):
         self.assertEqual(windows_shortcut("Ctrl+Alt+D"), (0x4003, ord("D")))
         self.assertEqual(windows_shortcut("Ctrl+Shift+F12"), (0x4006, 0x7B))
-        for shortcut in ("D", "Shift+D", "Ctrl+Space", ""):
+        for shortcut in ("D", "Shift+D", "Ctrl+Tab", ""):
             with self.assertRaises(ValueError):
                 windows_shortcut(shortcut)
 
@@ -77,7 +77,7 @@ class ShortcutTests(unittest.TestCase):
         window.editors["activate"].setKeySequence(QKeySequence("Ctrl+Alt+F8"))
         window.request_apply()
         self.assertEqual(values[0]["activate"], "Ctrl+Alt+F8")
-        self.assertEqual(len(values[0]), 12)
+        self.assertEqual(len(values[0]), len(DEFAULT_SHORTCUTS))
         window.show()
         APP.processEvents()
         self.assertFalse(window.grab().isNull())

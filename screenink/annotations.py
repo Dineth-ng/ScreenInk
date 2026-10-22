@@ -14,6 +14,9 @@ class Tool(str, Enum):
     RECTANGLE = "Rectangle"
     HIGHLIGHTER = "Highlighter"
     ERASER = "Eraser"
+    TEXT = "Text"
+    STEP = "Step"
+    LASER = "Laser"
 
 
 @dataclass(eq=False)
@@ -26,6 +29,7 @@ class Annotation:
     path: QPainterPath = field(default_factory=QPainterPath)
     last_point: QPointF | None = None
     samples: int = 1
+    pen_style: str = "Solid"
     _geometry: QPainterPath | None = field(default=None, init=False, repr=False)
 
     @classmethod
@@ -78,8 +82,9 @@ class Annotation:
 
     def paint(self, painter):
         color = QColor(self.color)
-        color.setAlphaF(0.35 if self.tool == Tool.HIGHLIGHTER else 1.0)
-        painter.setPen(QPen(color, self.width, Qt.PenStyle.SolidLine,
+        color.setAlphaF(0.35 if self.tool == Tool.HIGHLIGHTER or self.pen_style == "Marker" else 1.0)
+        style = {"Dashed": Qt.PenStyle.DashLine, "Dotted": Qt.PenStyle.DotLine}.get(self.pen_style, Qt.PenStyle.SolidLine)
+        painter.setPen(QPen(color, self.width, style,
                             Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawPath(self.geometry())

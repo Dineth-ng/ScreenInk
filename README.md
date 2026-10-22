@@ -1,161 +1,94 @@
-<p align="center">
-  <img src="screenink/assets/screenink.png" width="112" height="112" alt="ScreenInk app icon">
-</p>
-
+<p align="center"><img src="screenink/assets/screenink.png" width="112" alt="ScreenInk icon"></p>
 <h1 align="center">ScreenInk</h1>
 <p align="center"><strong>Explain it. Draw it. Right on your screen.</strong></p>
-<p align="center">A portable Windows screen annotation tool for teachers, creators, developers, and students.</p>
-<p align="center">
-  <a href="https://github.com/Dineth-ng/ScreenInk/releases">Download beta</a> ·
-  <a href="#quick-start">Quick start</a> ·
-  <a href="docs/BETA_TESTING.md">Tester guide</a> ·
-  <a href="https://github.com/Dineth-ng/ScreenInk/issues">Report a bug</a>
-</p>
+<p align="center">A portable Windows annotation and presentation tool built with Python and PySide6.</p>
 
----
+**0.4.0-beta.1 | Windows 10/11 x64 | Milestone 4 test build**
 
-**Current test version: 0.3.0-beta.1 · Windows x64 · Python + PySide6 / Qt 6**
+[Download beta](https://github.com/Dineth-ng/ScreenInk/releases) · [Presentation guide](docs/PRESENTATION.md) · [Report a bug](https://github.com/Dineth-ng/ScreenInk/issues)
 
-Press **Ctrl+Alt+D** to freeze the monitor under your pointer and start drawing.
-Highlight a code block, point out a command, or sketch an explanation during a
-tutorial. Press **Escape** to return to your desktop; ScreenInk stays in the tray.
+![ScreenInk toolbar](screenink/assets/toolbar-preview.png)
 
-## Download the Windows beta
+## Start in a minute
 
-Get **ScreenInk-0.3.0-beta.1-windows-x64.zip** from
-[GitHub Releases](https://github.com/Dineth-ng/ScreenInk/releases).
+1. Download `ScreenInk-0.4.0-beta.1-windows-x64.zip` from Releases.
+2. Extract the **whole ZIP**. Keep the EXE, adjacent runtime DLLs, and `_internal` folder together.
+3. Run `ScreenInk.exe`. The home window explains the tools and lets you change shortcuts.
+4. Move the mouse to your chosen monitor, then press **Ctrl+Alt+D**.
+5. Draw on the frozen screen, or press **F** to let the desktop keep updating behind your annotations.
+6. Press **Escape** to close drawing. ScreenInk stays in the tray; tray **Exit** quits.
 
-- Portable build: no Python installation or administrator privileges required.
-- Target platform: Windows 10/11, 64-bit x64. Clean-machine testing is still needed.
-- Includes the executable, runtime files, tester guide, and README.
-- A companion `.sha256` file lets you verify the download.
-
-This beta is unsigned, so Windows may show an unknown-publisher warning. Check
-the download source and checksum before deciding whether to run it.
+No Python installation or administrator privileges are required for the portable build. It is an unsigned beta; clean-machine and interactive Windows testing are still needed. The companion `.sha256` file can be compared with:
 
 ```powershell
-Get-FileHash .\ScreenInk-0.3.0-beta.1-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\ScreenInk-0.4.0-beta.1-windows-x64.zip -Algorithm SHA256
 ```
 
-Compare the result with the published `.sha256` file.
+## Tools and default shortcuts
 
-## Quick start
-
-1. Extract the **complete ZIP** to a folder.
-2. Open `ScreenInk` and double-click **ScreenInk.exe**. Keep its `_internal` folder beside it.
-3. The main window opens with a tool guide, **Start drawing**, and **Keyboard shortcuts** settings. A tray icon also appears.
-4. Move your pointer to the monitor to annotate and press **Ctrl+Alt+D**.
-5. Select a tool, color, and width. Draw using the left mouse button.
-6. Press **Escape** to close the overlay, or right-click the tray icon → **Exit** to quit.
-
-Run the executable from the extracted folder, not from inside the ZIP. You can
-create a Windows shortcut to `ScreenInk.exe` for convenient access.
-
-## Change your shortcuts
-
-Open **Keyboard shortcuts** in the main window. Click a field, press your desired
-combination, then click **Apply shortcuts**. You can change activation, Pen, Arrow,
-Rectangle, Highlighter, Eraser, Undo, Redo, Clear, and Close. **Restore defaults**
-fills in the original bindings; click Apply to save them.
-
-The activation shortcut works globally and supports Ctrl, Alt, or Win with a
-letter, number, or F1–F24 (Shift can also be included). Tool shortcuts work only
-inside the overlay. Duplicates and invalid combinations are rejected. If another
-app owns the new global shortcut, the previous registration stays active.
-Settings are saved per Windows user and restored on the next launch. Escape
-always closes the overlay, even if you choose another Close shortcut.
-
-![ScreenInk startup window](screenink/assets/home-preview.png)
-
-![Customizable keyboard shortcuts](screenink/assets/shortcuts-preview.png)
-
-Closing the main window hides it to the tray. Double-click the tray icon or choose
-**Open ScreenInk / Settings** to reopen it. Use **Exit ScreenInk** or tray **Exit**
-to quit. Opening the main window while drawing closes the overlay and discards
-that drawing session.
-
-## Drawing tools (default shortcuts)
-
-| Tool | Shortcut | Use it to… |
+| Action | Key | How it works |
 | --- | --- | --- |
-| Pen | **P** | Draw smooth, antialiased strokes and dots. |
-| Arrow | **A** | Drag from tail to tip with a live preview in any direction. |
-| Rectangle | **R** | Frame code or content with a colored border and transparent interior. |
-| Highlighter | **H** | Mark content at approximately 35% opacity; starts yellow at 12 px. |
-| Object eraser | **E** | Click to remove the topmost annotation or drag across several objects. |
-| Undo | **Ctrl+Z** | Undo drawing, erasing, or Clear; repeat for earlier actions. |
-| Redo | **Ctrl+Y** | Restore undone actions. New edits discard the old redo branch. |
-| Clear all | **Ctrl+Shift+X** | Remove all annotations without closing the overlay. Undo restores them. |
-| Capture full screen | **Ctrl+Shift+S** | Preview the annotated monitor, then Save a PNG or Copy the image. |
-| Capture region | **Ctrl+Shift+R** | Drag a region in any direction; preview its image. Escape cancels selection. |
-| Close overlay | **Escape** | Return to the desktop while ScreenInk stays in the tray. |
+| Activate | Ctrl+Alt+D | Capture the monitor under the mouse and open drawing. Also restores Drawing mode. |
+| Pen | P | Smooth freehand lines. Choose Solid, Dashed, Dotted, or Marker. |
+| Arrow | A | Drag from tail to tip in any direction. |
+| Rectangle | R | Drag opposite corners; the inside stays transparent. |
+| Highlighter | H | Translucent strokes at 35% opacity, initially yellow. |
+| Object eraser | E | Remove complete strokes, text, shapes, or markers. |
+| Text | T | Click, type, and Apply. Choose font size, color, and bold in the editor. |
+| Numbered steps | N | Click to place consecutive numbered circles. |
+| Spotlight | S | Toggle a clear focus area. Drag to move; wheel to resize. |
+| Magnifier | M | Toggle a movable lens over the original frozen image. |
+| Laser pointer | L | Drag a glowing trail that fades in about 0.9 seconds. |
+| Freeze / Live | F | Switch between a frozen image and a continuously updating desktop. |
+| Drawing / Pointer | Ctrl+Space | In Live mode, switch between drawing input and real click-through. |
+| Undo / Redo | Ctrl+Z / Ctrl+Y | Restore edits, moves, deletions, and Clear. |
+| Clear annotations | Ctrl+Shift+X | Remove annotations; undo restores them. |
+| Full screenshot | Ctrl+Shift+S | Preview, Save PNG, or Copy image pixels. |
+| Region screenshot | Ctrl+Shift+R | Drag an area; Escape cancels selection. |
+| Delete selected text/step | Delete or Backspace | Select or drag an existing object with its own tool first. |
+| Close | Escape | Close the overlay; a text editor/selection/preview cancels first. |
 
-![Modern grouped toolbar](screenink/assets/toolbar-preview.png)
+### Colors and pen styles
 
-## Screenshots — Milestone 3
+Choose **12 presets**: red, green, yellow, white, blue, cyan, orange, pink, purple, lime, teal, and black. Choose **Custom...** for any RGB/hex color. Each tool remembers its color during the session. Permanent annotations preserve their original colors and styles.
 
-Click the **camera** button or press **Ctrl+Shift+S** while drawing for a full
-annotated-monitor screenshot. Use the **region** button or **Ctrl+Shift+R** to
-select an area. A border and physical-pixel dimensions appear while dragging.
-Drag in any direction; click-only/zero-size selections are ignored. **Escape
-cancels selection without closing the drawing overlay.**
+Brush widths are **2, 4, 6, 8, and 12 logical pixels**. The style selector affects Pen: solid, dashed, dotted, or a 35%-opacity marker. Highlighter is also translucent. Laser is a separate temporary tool; it does not enter undo history or screenshot exports.
 
-The lightweight preview offers **Save**, **Copy**, and **Cancel**:
+### Presentation controls
 
-- **Save:** opens Save As with `ScreenInk_YYYY-MM-DD_HHMMSS.png`, using your computer's local date/time. Choose a `.png` filename and folder. PNG encoding runs on a worker thread; success is confirmed in the preview and a small notification. Save errors keep the preview available for retry and atomic writes protect an existing file.
-- **Copy:** places image pixels on the Qt system clipboard. Paste with Ctrl+V into Paint, Word, PowerPoint, Discord, or another image-capable app. No filename/path is copied.
-- **Cancel:** returns to drawing with the same annotations and undo/redo history. Captures and saves do not close ScreenInk. Close the preview to take another capture.
+- **Spotlight:** Options selects circle/rectangle and 10-90% dimming. Select a drawing tool to annotate while keeping the spotlight visible. Toggle S off to remove the mask without clearing ink. Spotlight and lens are presentation effects, outside annotation history.
+- **Text:** drag existing text to move it; double-click with Text selected to edit. Apply, Delete, and Cancel are explicit. Typing stays inside the editor. Existing text color can be changed in the editor; choose any custom color on the toolbar before creating new text.
+- **Steps:** Options sets diameter (24-72 px) or resets the next number to 1. Drag an existing marker to move it. After document edits, the next number follows the last remaining marker; Undo/Redo restores placed objects.
+- **Magnifier:** Options selects 2x, 3x, or 4x and **Export lens**. Drag the lens to move it. It is bounded to the screen and samples original pixels only. Available in Freeze mode; entering Live turns it off.
+- **Toolbar:** drag the dotted handle. Two compact rows wrap further on narrow logical screens. Options holds presentation settings.
 
-The home window's **Screenshots** tab controls whether exports include the 25%
-background dimming (on by default). The screen overlay itself remains dimmed.
-PNG is the current format. Dimming, format, and the last successful save folder
-are stored per Windows user using the existing QSettings system. Capture shortcuts
-can be changed in **Keyboard shortcuts**, alongside the drawing shortcuts.
+## Live mode and pointer recovery
 
-Exports reuse the original frozen screen pixels, then optionally add dimming and
-paint the same annotation objects onto a separate QImage. They never grab the
-toolbar, preview, region UI, notifications, or mouse cursor. The background stays
-unchanged. Active drawing gestures are finalized when you explicitly capture.
-The full image keeps the original physical resolution; logical annotation and
-selection coordinates map through the actual image-to-canvas ratio. Fractional
-DPI crops round outward to include the selection boundary and clamp to the image.
+Freeze starts with a captured image and about 25% dimming. Live uses a transparent, always-on-top window so the actual desktop continues updating. It does not repeatedly capture the screen. Drawing mode intercepts input; Windows requires a nearly transparent 1/255 backing alpha to keep the whole drawing surface mouse-sensitive.
 
-ScreenInk supports **one selected monitor per overlay**, not a stitched desktop
-or a region spanning monitors. Real 125%/150% scaling, native Save As focus, and
-clipboard pasting into other Windows applications still need interactive testing.
-The image is a freeze-frame from overlay activation, not a later live desktop frame.
-All screenshot pixels stay local: no uploads, content logging, cloud sync, or
-automatic background capture is implemented. Your explicit Copy action places
-the image on the OS clipboard; OS clipboard-history/sync settings are outside the app.
+In Live mode, **Ctrl+Space** enables real Windows layered-window click-through. The toolbar remains visible but also passes clicks through. Press Ctrl+Space again, use your activation shortcut, or right-click the tray and choose **Return to Drawing Mode** to regain input. If the pointer hotkey cannot register, a notification explains the tray fallback. Escape is a local overlay key: while another application owns focus in Pointer mode, restore Drawing first, then Escape.
 
-See the [Milestone 3 component guide and manual checklist](docs/CAPTURE.md).
+Returning from Live to Freeze captures a fresh frame after briefly hiding ScreenInk. Annotations keep their monitor-local coordinates; they are not attached to moving windows or document content. One selected monitor is supported per overlay, including monitors with negative desktop coordinates. Monitor layout changes require closing and reopening the overlay.
 
-### Built for explanations
+## Screenshots
 
-- **Five colors:** red, green, yellow, white, and blue.
-- **Five widths:** 2, 4, 6, 8, and 12 logical pixels.
-- **Compact dark toolbar:** icon buttons, selected-tool indicator, and a draggable six-dot handle.
-- **Tool-aware cursors:** an icon badge shows the tool; the target center marks the exact drawing position.
-- **Readable background:** the frozen screen is darkened by approximately 25% while ink stays visible.
-- **Independent objects:** erasing never changes the original background; a rectangle's interior is not an eraser target.
-- **Tray workflow:** shortcut failure has a tray-menu fallback, and duplicate instances are prevented.
+Use the camera or region button, then **Save**, **Copy**, or **Cancel**. Save suggests `ScreenInk_YYYY-MM-DD_HHMMSS.png` using the computer's local time. PNG encoding runs on a worker thread, and atomic writes protect existing files if saving fails. The last successful folder is remembered. Copy places actual image pixels on the clipboard.
 
-Each drawing tool remembers its own settings during an overlay session. Existing
-annotations keep their original style. Switching tools cancels an unfinished
-drawing preview. An eraser drag is grouped into one undo action.
+Freeze exports compose the original pixels and annotation objects. Live exports use a separate one-shot capture: hide ScreenInk briefly, capture the selected monitor, restore ScreenInk, and compose the captured frame with the annotations. Region selection temporarily shows that captured frame; closing the preview restores Live mode.
 
-## Beta limitations
+Exports exclude toolbar, selection UI, preview, cursor, notifications, and laser trails. Text and step markers are included. **Options > Export lens** includes the enabled lens when requested. **Screenshots > Include background dimming** controls normal dimming or the active spotlight mask in exports.
 
-- Closing the overlay discards annotations and undo history; reopening starts fresh.
-- One selected monitor is covered at a time. Mixed-DPI configurations need real desktop testing.
-- The background is frozen; the overlay does not pass clicks to the app beneath it.
-- PNG image export is available; editable annotation sessions are not saved. No recording, text tool, installer, auto-updater, or code signing yet.
-- Protected content, UAC secure desktop, and some exclusive fullscreen apps may block capture or overlays.
-- If Ctrl+Alt+D is already registered, use **Start drawing** from the tray; restart after resolving the conflict.
+Images retain native pixel resolution. Fractional-DPI regions round outward and clamp to the image. No recordings, uploads, telemetry, cloud services, or automatic background capture are included. OS clipboard history/sync is controlled by Windows.
 
-## Run from source
+## Customize shortcuts
 
-Use Python 3.11 or newer on Windows. In PowerShell:
+Open the home window's **Keyboard shortcuts** tab, edit keys, and click **Apply shortcuts**. All named actions in the table except Delete/Backspace are configurable. Activation and pointer recovery need Ctrl/Alt/Win plus a letter, digit, Space, or F1-F24. Pointer recovery is global only while the overlay exists. Duplicate shortcuts are rejected. Existing custom keys are preserved during upgrades; new actions receive unused alternatives when needed.
+
+Main-window Close hides it to the tray. Opening Settings while annotating closes that session, so save first. Closing an overlay discards annotations and undo history; there is no editable-session saving.
+
+## Run and test from source
+
+Use Python 3.11+ on Windows:
 
 ```powershell
 git clone https://github.com/Dineth-ng/ScreenInk.git
@@ -165,91 +98,47 @@ python -m venv .venv
 .\.venv\Scripts\python.exe main.py
 ```
 
-No virtual-environment activation is needed. For a launch without a console:
-
 ```powershell
-Start-Process -FilePath .\.venv\Scripts\pythonw.exe -ArgumentList main.py -WorkingDirectory (Get-Location).Path
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m compileall -q main.py screenink tests
+.\.venv\Scripts\python.exe main.py --smoke-test
 ```
 
-## Build the portable beta
+Tests cover drawing, history, styles, editor isolation, spotlight, magnifier, text/steps, laser expiry, live-mode state and capture failures, mocked native pointer flags, PNG/clipboard composition, fractional scaling, shortcuts, and toolbar wrapping. Offscreen and mocked checks **do not verify actual Windows click-through, global key delivery, compositor behavior, desktop focus, or mixed-DPI hardware**. Follow the [manual presentation checklist](docs/PRESENTATION.md) before relying on Live/Pointer mode in a lesson.
 
-Build on Windows x64 from the project folder:
+## Build the EXE
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
 .\.venv\Scripts\python.exe tools\build_beta.py
-```
-
-Outputs:
-
-```text
-dist/ScreenInk/ScreenInk.exe
-release/ScreenInk-0.3.0-beta.1-windows-x64.zip
-release/ScreenInk-0.3.0-beta.1-windows-x64.sha256
-```
-
-PyInstaller bundles the runtime into a portable folder, sets the executable icon
-and Windows version properties, then the build script creates the ZIP and hash.
-Generated builds are excluded from Git; distribute the ZIP through Releases.
-Edit `screenink/assets/screenink.svg` and run `tools/generate_icon.py` to regenerate
-the PNG and multi-resolution Windows ICO.
-
-## Test and contribute
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe main.py --smoke-test
 .\dist\ScreenInk\ScreenInk.exe --smoke-test
 ```
 
-The 33 regression tests cover native-resolution image composition, 125%/150%
-coordinate mapping, all region drag directions, selection cancellation, PNG round
-trips, simulated permission/disk failures, atomic preservation of existing files,
-clipboard image data, repeated captures, screenshot preferences, and geometry,
-transparency, styles, erasing,
-history, toolbar input, custom shortcuts, settings persistence, safe hotkey
-replacement, and fresh sessions. The smoke command
-checks startup, bundled icon loading, tool rendering, and history without opening
-a desktop overlay or registering the global shortcut; exit code 0 means success.
-Offscreen tests cannot confirm real desktop focus, tray interaction, global
-shortcut delivery, or mixed-DPI behavior.
+Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.1-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
 
-Use the [beta checklist](docs/BETA_TESTING.md) on a real Windows desktop. Report
-bugs through [GitHub Issues](https://github.com/Dineth-ng/ScreenInk/issues), including
-the beta version, Windows version, display scaling, reproduction steps, and
-expected/actual behavior.
+## Platform limits
+
+- Live/Pointer behavior and live screenshot timing need real Windows validation. The 200 ms hide delay is a best-effort compositor delay, not a Windows Graphics Capture synchronization guarantee. The capture provider is isolated for future platform-specific work.
+- No live magnifier polling, cross-monitor stitching, editable-session persistence, recording, installer, auto-update, or code signing.
+- Protected content, secure desktop/UAC, remote sessions, exclusive fullscreen applications, or elevated applications may behave differently or prevent capture/input. Close/reopen after display-layout changes.
+- Long text can exceed the viewport; use a smaller font or shorter lines. Text uses installed system fonts, so metrics may differ across machines.
 
 ## Project map
 
-```text
-screenink/
-  application.py    Tray, instance lock, capture, and app lifetime
-  window.py         Startup interface, tool guide, and shortcut editor
-  settings.py       Shortcut validation and saved per-user preferences
-  overlay.py        Fullscreen window and local shortcuts
-  drawing.py        Canvas input forwarding and rendering
-  interaction.py    Tool settings, gestures, and live previews
-  annotations.py    Independent annotation geometry and hit testing
-  history.py        Undo/redo document state
-  toolbar.py        Draggable controls
-  icons.py          Shared tool icon artwork
-  cursors.py        Tool-aware mouse cursors
-  capture.py        Capture orchestration and feedback
-  composition.py    Original image + dimming + annotation compositing
-  region_selection.py  Interactive selection border and pixel dimensions
-  capture_preview.py   Nonblocking preview and Save As dialog
-  exporting.py      Atomic background PNG writer
-  clipboard.py      Image-data clipboard operations
-  branding.py       Application icon loader
-  version.py        Beta version
-  smoke_test.py     Packaged startup check
-  hotkey.py         Windows global shortcut registration
-  assets/           SVG, PNG, and multi-resolution ICO
-tools/              Icon generator and Windows build script
-packaging/          Windows version metadata and release notes
-tests/              Automated drawing regression tests
-docs/               Developer notes and beta tester guide
-```
+| File | Responsibility |
+| --- | --- |
+| `application.py`, `window.py` | App/tray lifecycle, home and settings UI |
+| `hotkey.py`, `settings.py` | Windows global keys and saved preferences |
+| `overlay.py`, `drawing.py` | Overlay coordination and canvas painting |
+| `interaction.py`, `history.py` | Mouse gestures and undoable document edits |
+| `annotations.py` | Existing pen/arrow/rectangle/highlighter objects |
+| `teaching_annotations.py`, `text_editor.py` | Text/marker geometry, rendering, and temporary editor |
+| `spotlight.py`, `magnifier.py`, `laser.py` | Separate presentation effects |
+| `display_modes.py`, `passthrough.py` | Freeze/live and one-shot capture; native Windows input passthrough |
+| `toolbar.py`, `wrap_layout.py`, `icons.py`, `cursors.py`, `palette.py` | Controls, wrapping, icons, cursor badges, and colors |
+| `capture.py`, `composition.py`, `region_selection.py` | Capture workflow, native-resolution composition, selection |
+| `capture_preview.py`, `exporting.py`, `clipboard.py` | Preview, asynchronous atomic PNG saves, image clipboard |
+| `branding.py`, `version.py`, `smoke_test.py` | Identity/version and packaged smoke check |
+| `tools/`, `packaging/`, `tests/`, `docs/` | Build helpers, release metadata, tests, and guides |
 
-See [developer notes](docs/DEVELOPMENT.md) for the drawing architecture and the
-detailed Milestone 2 manual checklist.
+Python modules above are in `screenink/`. Earlier architecture notes: [drawing](docs/DEVELOPMENT.md) and [capture](docs/CAPTURE.md).
