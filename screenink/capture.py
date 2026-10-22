@@ -43,7 +43,7 @@ class CaptureController(QObject):
         self.overlay.canvas.controller.finish_pending()
         self.overlay.canvas.setEnabled(False)
         self.overlay.toolbar.setEnabled(False)
-        self.was_live = self.overlay.modes.live
+        self.was_live = self.overlay.modes.live and self.overlay.canvas.board_color is None
         if self.was_live:
             self.pending = True
             self.overlay.desktop_capture.request(lambda image, error: self.live_captured(image, error, region))
@@ -85,7 +85,8 @@ class CaptureController(QObject):
         try:
             image = compose_screenshot(self.background if self.background is not None else canvas.screenshot, tuple(canvas.controller.document.items),
                                        canvas.size(), self.settings.export_dimming, region, canvas.spotlight,
-                                       canvas.magnifier if self.overlay.toolbar.include_lens.isChecked() else None)
+                                       canvas.magnifier if self.overlay.toolbar.include_lens.isChecked() else None,
+                                       board_color=canvas.board_color)
         except Exception as exc:
             self.restore_drawing()
             self.notification.emit(f"Capture failed: {exc}")

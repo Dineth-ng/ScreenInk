@@ -45,6 +45,7 @@ class DragHandle(QWidget):
 
 
 class FloatingToolbar(QFrame):
+    board_selected = Signal(object)
     pen_style_selected = Signal(str)
     tool_selected = Signal(object)
     color_selected = Signal(QColor)
@@ -126,7 +127,7 @@ class FloatingToolbar(QFrame):
         self.sizes.activated.connect(lambda index: self.width_selected.emit(self.sizes.itemData(index)))
         row.addWidget(self.sizes)
         self.pen_styles = QComboBox()
-        self.pen_styles.addItems(["Solid", "Dashed", "Dotted", "Marker", "Brush"])
+        self.pen_styles.addItems(["Solid", "Dashed", "Dotted", "Marker", "Brush", "Chalk"])
         self.pen_styles.setToolTip("Pen stroke style; Highlighter keeps its own translucent style")
         self.pen_styles.activated.connect(lambda i: self.pen_style_selected.emit(self.pen_styles.itemText(i)))
         row.addWidget(self.pen_styles)
@@ -161,6 +162,16 @@ class FloatingToolbar(QFrame):
         options_action = QWidgetAction(self.options_menu)
         options_action.setDefaultWidget(options_widget)
         self.options_menu.addAction(options_action)
+        self.board_colors = QComboBox()
+        self.board_colors.setAccessibleName("Board background")
+        for label, value in (("Desktop", None), ("Blackboard", "#101214"),
+                             ("Whiteboard", "#ffffff"), ("Green board", "#193c32"),
+                             ("Custom color...", "custom")):
+            self.board_colors.addItem(label, value)
+        self.board_colors.activated.connect(self.choose_board)
+        self.board_color = None
+        self.presentation_row.addWidget(QLabel("Board background"))
+        self.presentation_row.addWidget(self.board_colors)
         self.spotlight_button = self.button("Spotlight", "Spotlight (S): drag to move, wheel to resize")
         self.spotlight_button.setCheckable(True)
         self.spotlight_button.clicked.connect(self.spotlight_requested)
@@ -228,6 +239,27 @@ class FloatingToolbar(QFrame):
         painter.setPen(QPen(QColor('#40516b'), 1))
         painter.setBrush(QColor('#111c2c'))
         painter.drawRoundedRect(QRectF(self.rect()).adjusted(.5, .5, -.5, -.5), 16, 16)
+
+    def choose_board(self, index):
+        value = self.board_colors.itemData(index)
+        if value != "custom":
+            self.board_selected.emit(QColor(value) if value else None)
+            self.options_menu.hide()
+            return
+        self.options_menu.hide()
+        picker = QColorDialog(self.board_color or QColor("#101214"), self.window())
+        picker.setWindowTitle("Board background color")
+        picker.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
+        picker.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        picker.setModal(True)
+        picker.colorSelected.connect(self.board_selected)
+        picker.finished.connect(lambda result: self.show_board(self.board_color))
+        picker.open()
+
+    def show_board(self, color):
+        self.board_color = QColor(color) if color is not None else None
+        index = self.board_colors.findData(color.name() if color is not None else None)
+        self.board_colors.setCurrentIndex(index if index >= 0 else 4)
 
     def choose_color(self, index):
         value = self.colors.itemData(index)

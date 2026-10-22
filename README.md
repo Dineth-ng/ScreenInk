@@ -3,7 +3,7 @@
 <p align="center"><strong>Explain it. Draw it. Right on your screen.</strong></p>
 <p align="center">A portable Windows annotation and presentation tool built with Python and PySide6.</p>
 
-**0.4.0-beta.2 | Windows 10/11 x64 | Milestone 4 test build**
+**0.4.0-beta.3 | Windows 10/11 x64 | Milestone 4 test build**
 
 [Download beta](https://github.com/Dineth-ng/ScreenInk/releases) · [Presentation guide](docs/PRESENTATION.md) · [Report a bug](https://github.com/Dineth-ng/ScreenInk/issues)
 
@@ -11,7 +11,7 @@
 
 ## Start in a minute
 
-1. Download `ScreenInk-0.4.0-beta.2-windows-x64.zip` from Releases.
+1. Download `ScreenInk-0.4.0-beta.3-windows-x64.zip` from Releases.
 2. Extract the **whole ZIP**. Keep the EXE, adjacent runtime DLLs, and `_internal` folder together.
 3. Run `ScreenInk.exe`. The home window explains the tools and lets you change shortcuts.
 4. Move the mouse to your chosen monitor, then press **Ctrl+Alt+D**.
@@ -21,7 +21,7 @@
 No Python installation or administrator privileges are required for the portable build. It is an unsigned beta; clean-machine and interactive Windows testing are still needed. The companion `.sha256` file can be compared with:
 
 ```powershell
-Get-FileHash .\ScreenInk-0.4.0-beta.2-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\ScreenInk-0.4.0-beta.3-windows-x64.zip -Algorithm SHA256
 ```
 
 ## Tools and default shortcuts
@@ -29,7 +29,7 @@ Get-FileHash .\ScreenInk-0.4.0-beta.2-windows-x64.zip -Algorithm SHA256
 | Action | Key | How it works |
 | --- | --- | --- |
 | Activate | Ctrl+Alt+D | Capture the monitor under the mouse and open drawing. Also restores Drawing mode. |
-| Pen | P | Smooth freehand lines. Choose Solid, Dashed, Dotted, Marker, or Brush. |
+| Pen | P | Smooth freehand lines. Choose Solid, Dashed, Dotted, Marker, Brush, or Chalk. |
 | Arrow | A | Drag from tail to tip in any direction. |
 | Rectangle | R | Drag opposite corners; the inside stays transparent. |
 | Highlighter | H | Translucent strokes at 35% opacity, initially yellow. |
@@ -116,7 +116,7 @@ Tests cover drawing, history, styles, editor isolation, spotlight, magnifier, te
 .\dist\ScreenInk\ScreenInk.exe --smoke-test
 ```
 
-Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.2-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
+Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.3-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
 
 ## Platform limits
 
@@ -144,3 +144,27 @@ Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.2-windows
 | `tools/`, `packaging/`, `tests/`, `docs/` | Build helpers, release metadata, tests, and guides |
 
 Python modules above are in `screenink/`. Earlier architecture notes: [drawing](docs/DEVELOPMENT.md) and [capture](docs/CAPTURE.md).
+
+## Blackboard, whiteboard and chalk
+
+Open **Options > Board background** and select **Blackboard**, **Whiteboard**,
+**Green board**, or **Custom color**. The whole canvas becomes an opaque board.
+Choose **Desktop** to return to the previous Freeze/Live background. Existing
+annotations stay in place; Clear, Undo, Redo and object erasing still work.
+Board color changes are presentation settings, not undoable drawing actions.
+Closing the overlay discards the board and annotations.
+
+Choose **Pen > Chalk** for textured, rounded chalk marks. It starts at 12 px;
+all pen colors and thicknesses work. The canvas cursor becomes a chalk stick,
+with its pointed end at the drawing position. Toolbar controls keep the normal
+arrow cursor. Chalk also works on desktop backgrounds.
+
+Live/Pointer switching, Spotlight and Magnifier are disabled while a board is
+open. Returning to Desktop restores the prior Freeze/Live mode in Drawing mode;
+effects can be enabled again. PNG captures use the selected board color without
+dimming or desktop pixels, including region captures.
+
+Manual checks: try each board color, draw with Chalk at 2/12 px, change ink color,
+erase a stroke, Undo/Redo, Clear/Undo, export full and region PNGs, then select
+Desktop and close/reopen the overlay. On Windows, also enter the board from Live
+Pointer mode and verify the toolbar, chalk cursor and Escape at 100%/150% scaling.

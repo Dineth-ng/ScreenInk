@@ -20,7 +20,7 @@ def physical_region(region, logical_size, physical_size):
     return QRect(left, top, right - left, bottom - top).intersected(QRect(0, 0, physical_size.width(), physical_size.height()))
 
 
-def compose_screenshot(background, annotations, logical_size, include_dimming=True, region=None, spotlight=None, magnifier=None):
+def compose_screenshot(background, annotations, logical_size, include_dimming=True, region=None, spotlight=None, magnifier=None, board_color=None):
     """Never grab widgets/desktop here: controls and cursor cannot enter the image."""
     if background.isNull():
         raise ValueError("No captured background is available.")
@@ -31,6 +31,10 @@ def compose_screenshot(background, annotations, logical_size, include_dimming=Tr
     if image.isNull():
         raise MemoryError("There is not enough memory to compose this screenshot.")
     image.setDevicePixelRatio(1.0)
+    if board_color is not None:
+        image.fill(QColor(board_color))
+        include_dimming = False
+        spotlight = magnifier = None
     painter = QPainter(image)
     try:
         if include_dimming and not (spotlight and spotlight.enabled):

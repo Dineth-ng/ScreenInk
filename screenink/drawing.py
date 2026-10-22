@@ -18,6 +18,7 @@ class DrawingCanvas(QWidget):
         super().__init__(parent)
         self.screenshot = screenshot
         self.live = False
+        self.board_color = None
         self.spotlight = Spotlight()
         self.magnifier = Magnifier()
         self.magnifier_editing = False
@@ -34,7 +35,8 @@ class DrawingCanvas(QWidget):
 
     def update_cursor(self):
         self.setCursor(drawing_cursor(self.controller.tool, self.controller.color,
-                                      self.controller.width, self.devicePixelRatioF()))
+                                      self.controller.width, self.devicePixelRatioF(),
+                                      self.controller.pen_style))
 
     def position(self, event):
         p = event.position()
@@ -116,17 +118,21 @@ class DrawingCanvas(QWidget):
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         painter.fillRect(event.rect(), QColor(0, 0, 0, 1) if self.live else QColor(0, 0, 0, 0))
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
-        if not self.live:
+        if self.board_color is not None:
+            painter.fillRect(event.rect(), self.board_color)
+        elif not self.live:
             painter.drawPixmap(self.rect(), self.screenshot)
-        if not self.live and not self.spotlight.enabled:
+        if self.board_color is None and not self.live and not self.spotlight.enabled:
             painter.fillRect(event.rect(), QColor(0, 0, 0, 64))
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self.spotlight.paint(painter, self.size())
+        if self.board_color is None:
+            self.spotlight.paint(painter, self.size())
         items = self.controller.document.items
         if self.controller.preview is not None:
             items = [*items, self.controller.preview]
         for item in items:
             if item.bounds().intersects(QRectF(event.rect())):
                 item.paint(painter)
-        self.magnifier.paint(painter, self.screenshot, self.size())
+        if self.board_color is None:
+            self.magnifier.paint(painter, self.screenshot, self.size())
         self.controller.laser.paint(painter)

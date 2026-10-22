@@ -1,7 +1,7 @@
 """Fullscreen screenshot overlay; toolbar and canvas communicate via signals."""
 
 from PySide6.QtCore import QPoint, Qt, QTimer, Signal
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QLabel, QToolButton, QVBoxLayout, QWidget
 
 from .annotations import Tool
@@ -50,6 +50,7 @@ class AnnotationOverlay(QWidget):
         self.toast_timer.timeout.connect(self.toast.hide)
         self.toolbar.move_clamped(QPoint((self.width() - self.toolbar.width()) // 2, 16))
         controller = self.canvas.controller
+        self.toolbar.board_selected.connect(self.set_board)
         self.toolbar.tool_selected.connect(self.select_tool)
         self.toolbar.magnifier_requested.connect(self.toggle_magnifier)
         self.toolbar.magnification_selected.connect(self.set_magnification)
@@ -134,7 +135,12 @@ class AnnotationOverlay(QWidget):
         self.toolbar.pointer_button.setText("Pointer" if self.pointer.enabled else "Drawing")
         self.toolbar.pointer_button.setChecked(self.pointer.enabled)
         self.toolbar.mode_button.setChecked(self.modes.live)
-        self.toolbar.magnifier_button.setEnabled(not self.modes.live)
+        board = self.canvas.board_color is not None
+        self.toolbar.show_board(self.canvas.board_color)
+        self.toolbar.mode_button.setEnabled(not board)
+        self.toolbar.pointer_button.setEnabled(not board)
+        self.toolbar.spotlight_button.setEnabled(not board)
+        self.toolbar.magnifier_button.setEnabled(not self.modes.live and not board)
         self.toolbar.magnifier_button.setChecked(self.canvas.magnifier.enabled)
         self.toolbar.mode_button.setToolTip(f"Freeze / Live ({self.bindings['mode']})")
         self.toolbar.fit_to_parent()
@@ -142,7 +148,29 @@ class AnnotationOverlay(QWidget):
         self.sync_toolbar()
         self.toolbar.pointer_button.setToolTip(f"Pointer / Drawing ({self.bindings['pointer']}); tray Start drawing also restores input")
 
+    def set_board(self, color):
+        if self.capture.active or self.desktop_capture.pending:
+            self.toolbar.show_board(self.canvas.board_color)
+            return
+        if not self.return_to_drawing():
+            self.toolbar.show_board(self.canvas.board_color)
+            return
+        self.canvas.controller.finish_pending()
+        self.canvas.board_color = QColor(color) if color is not None else None
+        if self.canvas.board_color is not None:
+            self.canvas.board_color.setAlpha(255)
+            self.canvas.magnifier.enabled = False
+            self.canvas.spotlight.enabled = False
+            self.canvas.magnifier_editing = False
+            self.canvas.spotlight_editing = False
+            self.toolbar.spotlight_button.setChecked(False)
+        self.canvas.update()
+        self.sync_modes()
+        self.canvas.setFocus()
+
     def toggle_mode(self):
+        if self.canvas.board_color is not None:
+            return
         if self.capture.active or self.desktop_capture.pending or QApplication.activeModalWidget() is not None:
             self.sync_modes()
             return
@@ -153,6 +181,8 @@ class AnnotationOverlay(QWidget):
         self.sync_modes()
 
     def toggle_pointer(self):
+        if self.canvas.board_color is not None:
+            return
         if self.capture.active or self.desktop_capture.pending or QApplication.activeModalWidget() is not None:
             self.sync_modes()
             return
@@ -177,6 +207,8 @@ class AnnotationOverlay(QWidget):
         self.canvas.controller.set_tool(tool)
 
     def toggle_magnifier(self):
+        if self.canvas.board_color is not None:
+            return
         if self.modes.live:
             self.notify("Magnifier samples a frozen screen. Switch to Freeze mode first.")
             return
@@ -194,6 +226,8 @@ class AnnotationOverlay(QWidget):
         self.canvas.update()
 
     def toggle_spotlight(self):
+        if self.canvas.board_color is not None:
+            return
         if self.pointer.enabled and not self.return_to_drawing():
             return
         self.canvas.magnifier_editing = False
