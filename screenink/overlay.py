@@ -129,6 +129,7 @@ class AnnotationOverlay(QWidget):
         self.sync_toolbar()
 
     def sync_modes(self, *args):
+        self.toolbar.set_pointer_window(self.pointer.enabled)
         self.toolbar.mode_button.setText("Live" if self.modes.live else "Freeze")
         self.toolbar.pointer_button.setText("Pointer" if self.pointer.enabled else "Drawing")
         self.toolbar.pointer_button.setChecked(self.pointer.enabled)
@@ -137,17 +138,23 @@ class AnnotationOverlay(QWidget):
         self.toolbar.magnifier_button.setChecked(self.canvas.magnifier.enabled)
         self.toolbar.mode_button.setToolTip(f"Freeze / Live ({self.bindings['mode']})")
         self.toolbar.fit_to_parent()
+        self.toolbar.move_clamped(self.toolbar.pos())
+        self.sync_toolbar()
         self.toolbar.pointer_button.setToolTip(f"Pointer / Drawing ({self.bindings['pointer']}); tray Start drawing also restores input")
 
     def toggle_mode(self):
         if self.capture.active or self.desktop_capture.pending or QApplication.activeModalWidget() is not None:
+            self.sync_modes()
             return
         if self.pointer.enabled and not self.return_to_drawing():
+            self.sync_modes()
             return
         self.modes.toggle()
+        self.sync_modes()
 
     def toggle_pointer(self):
         if self.capture.active or self.desktop_capture.pending or QApplication.activeModalWidget() is not None:
+            self.sync_modes()
             return
         if not self.pointer.enabled and not self.modes.live:
             self.notify("Switch to Live mode before using Pointer mode.")
@@ -163,6 +170,8 @@ class AnnotationOverlay(QWidget):
         return restored
 
     def select_tool(self, tool):
+        if self.pointer.enabled and not self.return_to_drawing():
+            return
         self.canvas.magnifier_editing = False
         self.canvas.spotlight_editing = False
         self.canvas.controller.set_tool(tool)
@@ -185,6 +194,8 @@ class AnnotationOverlay(QWidget):
         self.canvas.update()
 
     def toggle_spotlight(self):
+        if self.pointer.enabled and not self.return_to_drawing():
+            return
         self.canvas.magnifier_editing = False
         self.canvas.controller.cancel()
         spot = self.canvas.spotlight
@@ -247,6 +258,7 @@ class AnnotationOverlay(QWidget):
             self.toolbar.raise_()
 
     def closeEvent(self, event):
+        self.toolbar.hide()
         self.desktop_capture.cancel()
         self.pointer_hotkey.unregister()
         self.pointer_hotkey.deleteLater()

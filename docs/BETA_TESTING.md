@@ -1,4 +1,4 @@
-# ScreenInk 0.4.0-beta.1 — Windows test build
+# ScreenInk 0.4.0-beta.2 — Windows test build
 
 This is a portable Windows x64 beta. Python and administrator access are not needed.
 
@@ -27,7 +27,7 @@ it; double-click the tray or use Open ScreenInk / Settings to reopen it.
 
 See [PRESENTATION.md](PRESENTATION.md) for all new controls and the detailed Windows checklist.
 Live/Pointer mode needs interactive testing; offscreen tests do not verify native click-through.
-Use Ctrl+Space or tray Return to Drawing Mode to recover mouse input.
+Click the toolbar Pointer button (or a drawing tool), use Ctrl+Space, or choose tray Return to Drawing Mode to recover mouse input. The toolbar stays clickable.
 
 ## Tools
 
@@ -86,6 +86,6 @@ The global shortcut can conflict with another app; use Start drawing in the tray
 
 https://github.com/Dineth-ng/ScreenInk/issues
 
-Include version 0.4.0-beta.1, Windows version, monitor layout/scaling, selected
+Include version 0.4.0-beta.2, Windows version, monitor layout/scaling, selected
 tool, exact reproduction steps, expected result, and actual result. Include a
 picture or short recording if it helps; remove private information first.

@@ -1,7 +1,7 @@
 """Compact icon toolbar with an explicit drag handle and Qt signals."""
 
-from PySide6.QtCore import QPoint, QPointF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtCore import QPoint, QPointF, QRectF, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (QButtonGroup, QComboBox, QFrame, QHBoxLayout,
                                QLabel, QToolButton, QWidget, QVBoxLayout, QSlider, QCheckBox, QColorDialog, QMenu)
 
@@ -65,6 +65,9 @@ class FloatingToolbar(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.owner = parent
+        self.detached = False
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("toolbar")
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.setStyleSheet("""
@@ -123,7 +126,7 @@ class FloatingToolbar(QFrame):
         self.sizes.activated.connect(lambda index: self.width_selected.emit(self.sizes.itemData(index)))
         row.addWidget(self.sizes)
         self.pen_styles = QComboBox()
-        self.pen_styles.addItems(["Solid", "Dashed", "Dotted", "Marker"])
+        self.pen_styles.addItems(["Solid", "Dashed", "Dotted", "Marker", "Brush"])
         self.pen_styles.setToolTip("Pen stroke style; Highlighter keeps its own translucent style")
         self.pen_styles.activated.connect(lambda i: self.pen_style_selected.emit(self.pen_styles.itemText(i)))
         row.addWidget(self.pen_styles)
@@ -217,6 +220,15 @@ class FloatingToolbar(QFrame):
         row.addWidget(options)
         self.fit_to_parent()
 
+    def paintEvent(self, event):
+        # Paint explicitly: stylesheet backgrounds can disappear when this
+        # translucent frame changes between a child and an owned Tool window.
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(QColor('#40516b'), 1))
+        painter.setBrush(QColor('#111c2c'))
+        painter.drawRoundedRect(QRectF(self.rect()).adjusted(.5, .5, -.5, -.5), 16, 16)
+
     def choose_color(self, index):
         value = self.colors.itemData(index)
         if value is not None:
@@ -260,10 +272,30 @@ class FloatingToolbar(QFrame):
         self.setFixedWidth(width)
         self.setFixedHeight(self.layout().heightForWidth(width - frame) + frame)
 
+    def set_pointer_window(self, enabled):
+        """Keep controls in their own HWND while the drawing window passes input.
+
+        A child toolbar shares the overlay's native hit testing. An owned Tool
+        window can remain interactive without blocking the desktop elsewhere.
+        """
+        if self.detached == enabled:
+            return
+        local_position = self.owner.mapFromGlobal(self.pos()) if self.detached else self.pos()
+        self.options_menu.hide()
+        flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
+                 Qt.WindowType.WindowStaysOnTopHint) if enabled else Qt.WindowType.Widget
+        self.setParent(self.owner, flags)
+        self.detached = enabled
+        self.move_clamped(self.owner.mapToGlobal(local_position) if enabled else local_position)
+        self.show()
+        self.raise_()
+
     def move_clamped(self, point):
-        parent = self.parentWidget()
-        self.move(max(0, min(point.x(), parent.width() - self.width())),
-                  max(0, min(point.y(), parent.height() - self.height())))
+        parent = self.owner
+        local = parent.mapFromGlobal(point) if self.detached else point
+        local = QPoint(max(0, min(local.x(), parent.width() - self.width())),
+                       max(0, min(local.y(), parent.height() - self.height())))
+        self.move(parent.mapToGlobal(local) if self.detached else local)
 
     def sync(self, controller):
         self.buttons[controller.tool].setChecked(True)

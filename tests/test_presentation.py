@@ -22,6 +22,74 @@ APP = QApplication.instance() or QApplication([])
 
 
 class PresentationTests(unittest.TestCase):
+    def test_toolbar_background_stays_opaque_across_window_transitions(self):
+        overlay = self.overlay()
+        for detached in (False, True, False, True, False):
+            overlay.toolbar.set_pointer_window(detached)
+            APP.processEvents()
+            image = overlay.toolbar.grab().toImage()
+            self.assertEqual(image.pixelColor(image.width() // 2, image.height() - 4), QColor('#111c2c'))
+
+    def test_pointer_toolbar_is_independent_and_button_recovers_drawing(self):
+        overlay = self.overlay()
+        overlay.move(-600, 50)
+        overlay.toggle_mode()
+        local = overlay.toolbar.pos()
+        library = MagicMock()
+        library.GetWindowLongPtrW.return_value = 0x80000
+        library.SetWindowLongPtrW.return_value = 0x80000
+        with patch('screenink.passthrough.QApplication.platformName', return_value='windows'), \
+             patch('screenink.passthrough.ctypes.WinDLL', return_value=library):
+            overlay.toggle_pointer()
+            self.assertTrue(overlay.toolbar.isWindow())
+            self.assertTrue(overlay.toolbar.detached)
+            self.assertEqual(overlay.toolbar.pos(), overlay.mapToGlobal(local))
+            overlay.toolbar.pointer_button.click()
+            self.assertFalse(overlay.pointer.enabled)
+            self.assertFalse(overlay.toolbar.isWindow())
+            self.assertEqual(overlay.toolbar.pos(), local)
+
+    def test_select_pen_from_pointer_toolbar_returns_to_drawing(self):
+        overlay = self.overlay()
+        overlay.toggle_mode()
+        library = MagicMock()
+        library.GetWindowLongPtrW.return_value = 0x80000
+        library.SetWindowLongPtrW.return_value = 0x80000
+        with patch('screenink.passthrough.QApplication.platformName', return_value='windows'), \
+             patch('screenink.passthrough.ctypes.WinDLL', return_value=library):
+            overlay.toggle_pointer()
+            overlay.toolbar.buttons[Tool.ARROW].click()
+            self.assertFalse(overlay.pointer.enabled)
+            self.assertEqual(overlay.canvas.controller.tool, Tool.ARROW)
+
+    def test_live_switch_restores_drawing_tool_after_magnifier(self):
+        overlay = self.overlay()
+        overlay.toggle_magnifier()
+        self.assertFalse(overlay.toolbar.buttons[Tool.PEN].isChecked())
+        overlay.toggle_mode()
+        self.assertTrue(overlay.toolbar.buttons[Tool.PEN].isChecked())
+        self.assertNotEqual(overlay.canvas.cursor().shape(), Qt.CursorShape.SizeAllCursor)
+
+    def test_failed_freeze_keeps_live_button_checked(self):
+        overlay = self.overlay()
+        overlay.toggle_mode()
+        with patch.object(overlay.desktop_capture, 'request') as request:
+            overlay.toolbar.mode_button.click()
+            request.call_args.args[0](None, 'Desktop capture failed')
+        self.assertTrue(overlay.modes.live)
+        self.assertTrue(overlay.toolbar.mode_button.isChecked())
+
+    def test_pointer_restore_preserves_unrelated_native_style_changes(self):
+        overlay = self.overlay()
+        library = MagicMock()
+        library.GetWindowLongPtrW.side_effect = [0x80000, 0x800a0]
+        library.SetWindowLongPtrW.return_value = 0x80000
+        with patch('screenink.passthrough.QApplication.platformName', return_value='windows'), \
+             patch('screenink.passthrough.ctypes.WinDLL', return_value=library):
+            self.assertTrue(overlay.pointer.set_enabled(True))
+            self.assertTrue(overlay.pointer.set_enabled(False))
+        self.assertEqual(library.SetWindowLongPtrW.call_args.args[-1], 0x80080)
+
     def test_laser_fades_without_document_or_export_changes(self):
         c = DrawingController()
         c.set_tool(Tool.LASER)

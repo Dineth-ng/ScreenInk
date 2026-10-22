@@ -7,6 +7,7 @@ from .annotations import Annotation, Tool
 from .history import AnnotationDocument
 from .teaching_annotations import TextAnnotation, StepMarker
 from .laser import LaserTrail
+from .brush import BrushStroke
 
 
 class DrawingController(QObject):
@@ -32,6 +33,7 @@ class DrawingController(QObject):
         self.text_bold = False
         self.marker_size = 40
         self.pen_style = "Solid"
+        self.pen_style_widths = {"Solid": 4, "Dashed": 4, "Dotted": 4, "Marker": 12, "Brush": 8}
         self.document.changed.connect(self.update_step_number)
 
     @property
@@ -53,10 +55,12 @@ class DrawingController(QObject):
         self.settings_changed.emit()
 
     def set_pen_style(self, style):
-        if style not in ("Solid", "Dashed", "Dotted", "Marker"):
+        if style not in ("Solid", "Dashed", "Dotted", "Marker", "Brush"):
             raise ValueError("Unknown pen style")
         self.finish_pending()
+        self.pen_style_widths[self.pen_style] = self.styles[Tool.PEN][1]
         self.pen_style = style
+        self.styles[Tool.PEN][1] = self.pen_style_widths[style]
         self.settings_changed.emit()
 
     def set_width(self, width):
@@ -93,7 +97,8 @@ class DrawingController(QObject):
         if self.tool == Tool.ERASER:
             self.erase(point)
         else:
-            self.preview = Annotation.begin(self.tool, self.color, self.width, point)
+            kind = BrushStroke if self.tool == Tool.PEN and self.pen_style == 'Brush' else Annotation
+            self.preview = kind.begin(self.tool, self.color, self.width, point)
             if self.tool == Tool.PEN:
                 self.preview.pen_style = self.pen_style
             self.invalidated.emit(self.preview.bounds())

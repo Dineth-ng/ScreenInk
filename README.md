@@ -3,7 +3,7 @@
 <p align="center"><strong>Explain it. Draw it. Right on your screen.</strong></p>
 <p align="center">A portable Windows annotation and presentation tool built with Python and PySide6.</p>
 
-**0.4.0-beta.1 | Windows 10/11 x64 | Milestone 4 test build**
+**0.4.0-beta.2 | Windows 10/11 x64 | Milestone 4 test build**
 
 [Download beta](https://github.com/Dineth-ng/ScreenInk/releases) · [Presentation guide](docs/PRESENTATION.md) · [Report a bug](https://github.com/Dineth-ng/ScreenInk/issues)
 
@@ -11,7 +11,7 @@
 
 ## Start in a minute
 
-1. Download `ScreenInk-0.4.0-beta.1-windows-x64.zip` from Releases.
+1. Download `ScreenInk-0.4.0-beta.2-windows-x64.zip` from Releases.
 2. Extract the **whole ZIP**. Keep the EXE, adjacent runtime DLLs, and `_internal` folder together.
 3. Run `ScreenInk.exe`. The home window explains the tools and lets you change shortcuts.
 4. Move the mouse to your chosen monitor, then press **Ctrl+Alt+D**.
@@ -21,7 +21,7 @@
 No Python installation or administrator privileges are required for the portable build. It is an unsigned beta; clean-machine and interactive Windows testing are still needed. The companion `.sha256` file can be compared with:
 
 ```powershell
-Get-FileHash .\ScreenInk-0.4.0-beta.1-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\ScreenInk-0.4.0-beta.2-windows-x64.zip -Algorithm SHA256
 ```
 
 ## Tools and default shortcuts
@@ -29,7 +29,7 @@ Get-FileHash .\ScreenInk-0.4.0-beta.1-windows-x64.zip -Algorithm SHA256
 | Action | Key | How it works |
 | --- | --- | --- |
 | Activate | Ctrl+Alt+D | Capture the monitor under the mouse and open drawing. Also restores Drawing mode. |
-| Pen | P | Smooth freehand lines. Choose Solid, Dashed, Dotted, or Marker. |
+| Pen | P | Smooth freehand lines. Choose Solid, Dashed, Dotted, Marker, or Brush. |
 | Arrow | A | Drag from tail to tip in any direction. |
 | Rectangle | R | Drag opposite corners; the inside stays transparent. |
 | Highlighter | H | Translucent strokes at 35% opacity, initially yellow. |
@@ -52,7 +52,9 @@ Get-FileHash .\ScreenInk-0.4.0-beta.1-windows-x64.zip -Algorithm SHA256
 
 Choose **12 presets**: red, green, yellow, white, blue, cyan, orange, pink, purple, lime, teal, and black. Choose **Custom...** for any RGB/hex color. Each tool remembers its color during the session. Permanent annotations preserve their original colors and styles.
 
-Brush widths are **2, 4, 6, 8, and 12 logical pixels**. The style selector affects Pen: solid, dashed, dotted, or a 35%-opacity marker. Highlighter is also translucent. Laser is a separate temporary tool; it does not enter undo history or screenshot exports.
+Brush widths are **2, 4, 6, 8, and 12 logical pixels**. The style selector affects Pen: solid, dashed, dotted, a 35%-opacity marker, or **Brush**. Brush produces smooth rounded ink with gradual thickness changes: slower mouse movement is thicker and faster movement is thinner. Brush starts at 8 px, stabilizes small mouse tremors, and remembers its width separately from the other pen styles. This simulates brush pressure using the mouse; no tablet is required. Highlighter is also translucent. Laser is a separate temporary tool; it does not enter undo history or screenshot exports.
+
+![Brush stroke examples](screenink/assets/brush-preview.png)
 
 ### Presentation controls
 
@@ -66,7 +68,7 @@ Brush widths are **2, 4, 6, 8, and 12 logical pixels**. The style selector affec
 
 Freeze starts with a captured image and about 25% dimming. Live uses a transparent, always-on-top window so the actual desktop continues updating. It does not repeatedly capture the screen. Drawing mode intercepts input; Windows requires a nearly transparent 1/255 backing alpha to keep the whole drawing surface mouse-sensitive.
 
-In Live mode, **Ctrl+Space** enables real Windows layered-window click-through. The toolbar remains visible but also passes clicks through. Press Ctrl+Space again, use your activation shortcut, or right-click the tray and choose **Return to Drawing Mode** to regain input. If the pointer hotkey cannot register, a notification explains the tray fallback. Escape is a local overlay key: while another application owns focus in Pointer mode, restore Drawing first, then Escape.
+In Live mode, **Ctrl+Space** enables real Windows layered-window click-through. The toolbar stays dark and clickable in its own floating window. Click its **Pointer** button to return to **Drawing**, select a drawing tool, press Ctrl+Space again, use your activation shortcut, or right-click the tray and choose **Return to Drawing Mode** to regain input. If the pointer hotkey cannot register, a notification explains the tray fallback. Escape is a local overlay key: while another application owns focus in Pointer mode, restore Drawing first, then Escape.
 
 Returning from Live to Freeze captures a fresh frame after briefly hiding ScreenInk. Annotations keep their monitor-local coordinates; they are not attached to moving windows or document content. One selected monitor is supported per overlay, including monitors with negative desktop coordinates. Monitor layout changes require closing and reopening the overlay.
 
@@ -114,7 +116,7 @@ Tests cover drawing, history, styles, editor isolation, spotlight, magnifier, te
 .\dist\ScreenInk\ScreenInk.exe --smoke-test
 ```
 
-Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.1-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
+Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.2-windows-x64.zip`, and its SHA-256 file. The build validates synthetic startup without capturing the user's desktop. No new runtime dependency was added.
 
 ## Platform limits
 
@@ -131,7 +133,7 @@ Outputs: `dist/ScreenInk/ScreenInk.exe`, `release/ScreenInk-0.4.0-beta.1-windows
 | `hotkey.py`, `settings.py` | Windows global keys and saved preferences |
 | `overlay.py`, `drawing.py` | Overlay coordination and canvas painting |
 | `interaction.py`, `history.py` | Mouse gestures and undoable document edits |
-| `annotations.py` | Existing pen/arrow/rectangle/highlighter objects |
+| `annotations.py`, `brush.py` | Pen/arrow/rectangle/highlighter objects and variable-width brush geometry |
 | `teaching_annotations.py`, `text_editor.py` | Text/marker geometry, rendering, and temporary editor |
 | `spotlight.py`, `magnifier.py`, `laser.py` | Separate presentation effects |
 | `display_modes.py`, `passthrough.py` | Freeze/live and one-shot capture; native Windows input passthrough |

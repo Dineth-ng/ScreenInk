@@ -35,11 +35,14 @@ class PointerPassthrough(QObject):
         if not style and ctypes.get_last_error():
             self.error.emit('Windows could not read overlay input settings.')
             return False
-        target = (style | 0x00080000 | 0x00000020) if enabled else self.original_style
+        # Restore only the bits we own. Qt/Windows can change other styles while
+        # pointer mode is active (activation, tool-window state, etc.).
+        mask = 0x00080000 | 0x00000020
+        target = (style | mask) if enabled else ((style & ~mask) | (self.original_style & mask))
         ctypes.set_last_error(0)
         result = set_style(hwnd, -20, target)
         if not result and ctypes.get_last_error():
-            self.error.emit('Windows could not change overlay input settings. Drawing mode was kept.')
+            self.error.emit('Windows could not change overlay input settings. The previous input mode was kept.')
             return False
         if enabled:
             self.original_style = style

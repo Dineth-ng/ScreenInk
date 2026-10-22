@@ -79,6 +79,7 @@ class DisplayModeController(QObject):
 
     def freeze_captured(self, image, error):
         if error:
+            self.changed.emit(self.live)
             self.error.emit(error)
             return
         self.canvas.screenshot = image
