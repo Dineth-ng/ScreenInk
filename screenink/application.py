@@ -29,6 +29,8 @@ class ScreenInkApplication(QObject):
         self.window = MainWindow(self.settings.shortcuts)
         self.window.drawing_requested.connect(self.start_drawing)
         self.window.shortcuts_requested.connect(self.apply_shortcuts)
+        self.window.capture_preferences_requested.connect(self.apply_capture_preferences)
+        self.window.refresh_capture_preferences(self.settings)
         self.window.exit_requested.connect(self.exit_application)
         self.capture_timer = QTimer(self)
         self.capture_timer.setSingleShot(True)
@@ -68,6 +70,7 @@ class ScreenInkApplication(QObject):
         self.capture_pending = False
         if self.overlay is not None:
             self.overlay.close()
+        self.window.refresh_capture_preferences(self.settings)
         self.window.showNormal()
         self.window.raise_()
         self.window.activateWindow()
@@ -104,6 +107,16 @@ class ScreenInkApplication(QObject):
         self.refresh_shortcuts()
         self.window.status.setText("Shortcuts saved. They will also be used the next time you launch ScreenInk.")
 
+    @Slot(bool)
+    def apply_capture_preferences(self, include_dimming):
+        try:
+            self.settings.save_capture_preferences(include_dimming)
+        except OSError as exc:
+            QMessageBox.warning(self.window, "Could not save preferences", str(exc))
+            return
+        self.window.refresh_capture_preferences(self.settings)
+        self.window.status.setText("Screenshot preferences saved. Images stay local.")
+
     @Slot()
     def start_drawing(self):
         if self.overlay is not None:
@@ -129,7 +142,7 @@ class ScreenInkApplication(QObject):
         if screenshot.isNull():
             QMessageBox.warning(None, "ScreenInk", "The screen could not be captured. Try again.")
             return
-        self.overlay = AnnotationOverlay(screen, screenshot, self.settings.shortcuts)
+        self.overlay = AnnotationOverlay(screen, screenshot, self.settings.shortcuts, self.settings)
         self.overlay.closed.connect(self.overlay_closed)
         self.overlay.show()
         self.overlay.raise_()

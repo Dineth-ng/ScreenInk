@@ -1,4 +1,4 @@
-# ScreenInk 0.2.0-beta.1 — Windows test build
+# ScreenInk 0.3.0-beta.1 — Windows test build
 
 This is a portable Windows x64 beta. Python and administrator access are not needed.
 
@@ -27,9 +27,16 @@ it; double-click the tray or use Open ScreenInk / Settings to reopen it.
 
 P: Pen | A: Arrow | R: Rectangle | H: Highlighter | E: Object eraser
 Ctrl+Z: Undo | Ctrl+Y: Redo | Ctrl+Shift+X: Clear all | Escape: Close overlay
+Ctrl+Shift+S: Capture full screen | Ctrl+Shift+R: Capture region
 
 Pick colors and sizes on the toolbar. Drag its dotted handle to move it.
 The cursor's target center marks the drawing position; its badge shows the tool.
+
+The redesigned toolbar groups drawing, style, capture, and history controls.
+Click the camera or region icon to preview the frozen screen plus annotations
+without toolbar/cursor artifacts. Save a timestamp-named PNG or copy image pixels
+for pasting. Escape cancels region selection; Cancel closes preview and returns
+to drawing. The Screenshots tab controls export dimming and remembers your folder.
 
 ## Tester checklist
 
@@ -51,12 +58,18 @@ The cursor's target center marks the drawing position; its badge shows the tool.
 - [ ] Screen edges and mixed-DPI monitors keep cursor/ink aligned.
 - [ ] Closing/reopening creates a fresh background and empty annotation history.
 - [ ] A second launch is prevented; Exit removes the tray and releases the shortcut.
+- [ ] Full capture includes all annotations, without toolbar/cursor, at native pixel dimensions.
+- [ ] Region selection works in all directions with dimensions; Escape cancels only selection.
+- [ ] Save PNG, repeat capture, and paste Copy into Paint; annotations and Undo/Redo remain unchanged.
+- [ ] Test last-folder persistence, export dimming on/off, and a failed save/retry.
+- [ ] Verify capture/cropping at 125% and 150% scaling, including mixed-DPI monitors.
 
 ## Known beta limits
 
 Windows 10/11 x64 is the target; clean-machine compatibility and mixed-DPI setups
 still need tester verification. Drawing covers one selected monitor at a time.
-No save/export, recording, installer, auto-update, or code signing is included.
+PNG export and clipboard copy are included; no editable-session saving, recording,
+installer, auto-update, or code signing is included.
 Closing an overlay discards its drawings. Protected windows/UAC may not capture.
 The global shortcut can conflict with another app; use Start drawing in the tray.
 
@@ -64,6 +77,6 @@ The global shortcut can conflict with another app; use Start drawing in the tray
 
 https://github.com/Dineth-ng/ScreenInk/issues
 
-Include version 0.2.0-beta.1, Windows version, monitor layout/scaling, selected
+Include version 0.3.0-beta.1, Windows version, monitor layout/scaling, selected
 tool, exact reproduction steps, expected result, and actual result. Include a
 picture or short recording if it helps; remove private information first.

@@ -14,7 +14,7 @@
 
 ---
 
-**Current test version: 0.2.0-beta.1 · Windows x64 · Python + PySide6 / Qt 6**
+**Current test version: 0.3.0-beta.1 · Windows x64 · Python + PySide6 / Qt 6**
 
 Press **Ctrl+Alt+D** to freeze the monitor under your pointer and start drawing.
 Highlight a code block, point out a command, or sketch an explanation during a
@@ -22,7 +22,7 @@ tutorial. Press **Escape** to return to your desktop; ScreenInk stays in the tra
 
 ## Download the Windows beta
 
-Get **ScreenInk-0.2.0-beta.1-windows-x64.zip** from
+Get **ScreenInk-0.3.0-beta.1-windows-x64.zip** from
 [GitHub Releases](https://github.com/Dineth-ng/ScreenInk/releases).
 
 - Portable build: no Python installation or administrator privileges required.
@@ -34,7 +34,7 @@ This beta is unsigned, so Windows may show an unknown-publisher warning. Check
 the download source and checksum before deciding whether to run it.
 
 ```powershell
-Get-FileHash .\ScreenInk-0.2.0-beta.1-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\ScreenInk-0.3.0-beta.1-windows-x64.zip -Algorithm SHA256
 ```
 
 Compare the result with the published `.sha256` file.
@@ -86,7 +86,49 @@ that drawing session.
 | Undo | **Ctrl+Z** | Undo drawing, erasing, or Clear; repeat for earlier actions. |
 | Redo | **Ctrl+Y** | Restore undone actions. New edits discard the old redo branch. |
 | Clear all | **Ctrl+Shift+X** | Remove all annotations without closing the overlay. Undo restores them. |
+| Capture full screen | **Ctrl+Shift+S** | Preview the annotated monitor, then Save a PNG or Copy the image. |
+| Capture region | **Ctrl+Shift+R** | Drag a region in any direction; preview its image. Escape cancels selection. |
 | Close overlay | **Escape** | Return to the desktop while ScreenInk stays in the tray. |
+
+![Modern grouped toolbar](screenink/assets/toolbar-preview.png)
+
+## Screenshots — Milestone 3
+
+Click the **camera** button or press **Ctrl+Shift+S** while drawing for a full
+annotated-monitor screenshot. Use the **region** button or **Ctrl+Shift+R** to
+select an area. A border and physical-pixel dimensions appear while dragging.
+Drag in any direction; click-only/zero-size selections are ignored. **Escape
+cancels selection without closing the drawing overlay.**
+
+The lightweight preview offers **Save**, **Copy**, and **Cancel**:
+
+- **Save:** opens Save As with `ScreenInk_YYYY-MM-DD_HHMMSS.png`, using your computer's local date/time. Choose a `.png` filename and folder. PNG encoding runs on a worker thread; success is confirmed in the preview and a small notification. Save errors keep the preview available for retry and atomic writes protect an existing file.
+- **Copy:** places image pixels on the Qt system clipboard. Paste with Ctrl+V into Paint, Word, PowerPoint, Discord, or another image-capable app. No filename/path is copied.
+- **Cancel:** returns to drawing with the same annotations and undo/redo history. Captures and saves do not close ScreenInk. Close the preview to take another capture.
+
+The home window's **Screenshots** tab controls whether exports include the 25%
+background dimming (on by default). The screen overlay itself remains dimmed.
+PNG is the current format. Dimming, format, and the last successful save folder
+are stored per Windows user using the existing QSettings system. Capture shortcuts
+can be changed in **Keyboard shortcuts**, alongside the drawing shortcuts.
+
+Exports reuse the original frozen screen pixels, then optionally add dimming and
+paint the same annotation objects onto a separate QImage. They never grab the
+toolbar, preview, region UI, notifications, or mouse cursor. The background stays
+unchanged. Active drawing gestures are finalized when you explicitly capture.
+The full image keeps the original physical resolution; logical annotation and
+selection coordinates map through the actual image-to-canvas ratio. Fractional
+DPI crops round outward to include the selection boundary and clamp to the image.
+
+ScreenInk supports **one selected monitor per overlay**, not a stitched desktop
+or a region spanning monitors. Real 125%/150% scaling, native Save As focus, and
+clipboard pasting into other Windows applications still need interactive testing.
+The image is a freeze-frame from overlay activation, not a later live desktop frame.
+All screenshot pixels stay local: no uploads, content logging, cloud sync, or
+automatic background capture is implemented. Your explicit Copy action places
+the image on the OS clipboard; OS clipboard-history/sync settings are outside the app.
+
+See the [Milestone 3 component guide and manual checklist](docs/CAPTURE.md).
 
 ### Built for explanations
 
@@ -107,7 +149,7 @@ drawing preview. An eraser drag is grouped into one undo action.
 - Closing the overlay discards annotations and undo history; reopening starts fresh.
 - One selected monitor is covered at a time. Mixed-DPI configurations need real desktop testing.
 - The background is frozen; the overlay does not pass clicks to the app beneath it.
-- No annotation saving/export, recording, text tool, installer, auto-updater, or code signing yet.
+- PNG image export is available; editable annotation sessions are not saved. No recording, text tool, installer, auto-updater, or code signing yet.
 - Protected content, UAC secure desktop, and some exclusive fullscreen apps may block capture or overlays.
 - If Ctrl+Alt+D is already registered, use **Start drawing** from the tray; restart after resolving the conflict.
 
@@ -142,8 +184,8 @@ Outputs:
 
 ```text
 dist/ScreenInk/ScreenInk.exe
-release/ScreenInk-0.2.0-beta.1-windows-x64.zip
-release/ScreenInk-0.2.0-beta.1-windows-x64.sha256
+release/ScreenInk-0.3.0-beta.1-windows-x64.zip
+release/ScreenInk-0.3.0-beta.1-windows-x64.sha256
 ```
 
 PyInstaller bundles the runtime into a portable folder, sets the executable icon
@@ -160,7 +202,11 @@ the PNG and multi-resolution Windows ICO.
 .\dist\ScreenInk\ScreenInk.exe --smoke-test
 ```
 
-The 17 regression tests cover geometry, transparency, styles, erasing,
+The 33 regression tests cover native-resolution image composition, 125%/150%
+coordinate mapping, all region drag directions, selection cancellation, PNG round
+trips, simulated permission/disk failures, atomic preservation of existing files,
+clipboard image data, repeated captures, screenshot preferences, and geometry,
+transparency, styles, erasing,
 history, toolbar input, custom shortcuts, settings persistence, safe hotkey
 replacement, and fresh sessions. The smoke command
 checks startup, bundled icon loading, tool rendering, and history without opening
@@ -188,6 +234,12 @@ screenink/
   toolbar.py        Draggable controls
   icons.py          Shared tool icon artwork
   cursors.py        Tool-aware mouse cursors
+  capture.py        Capture orchestration and feedback
+  composition.py    Original image + dimming + annotation compositing
+  region_selection.py  Interactive selection border and pixel dimensions
+  capture_preview.py   Nonblocking preview and Save As dialog
+  exporting.py      Atomic background PNG writer
+  clipboard.py      Image-data clipboard operations
   branding.py       Application icon loader
   version.py        Beta version
   smoke_test.py     Packaged startup check

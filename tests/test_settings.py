@@ -77,7 +77,7 @@ class ShortcutTests(unittest.TestCase):
         window.editors["activate"].setKeySequence(QKeySequence("Ctrl+Alt+F8"))
         window.request_apply()
         self.assertEqual(values[0]["activate"], "Ctrl+Alt+F8")
-        self.assertEqual(len(values[0]), 10)
+        self.assertEqual(len(values[0]), 12)
         window.show()
         APP.processEvents()
         self.assertFalse(window.grab().isNull())

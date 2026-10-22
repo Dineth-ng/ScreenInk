@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QKeySequence
-from PySide6.QtWidgets import (QFormLayout, QHBoxLayout, QLabel, QKeySequenceEdit,
+from PySide6.QtWidgets import (QCheckBox, QFormLayout, QHBoxLayout, QLabel, QKeySequenceEdit,
                                QMainWindow, QPushButton, QScrollArea, QTabWidget,
                                QVBoxLayout, QWidget)
 
@@ -15,6 +15,7 @@ class MainWindow(QMainWindow):
     drawing_requested = Signal()
     shortcuts_requested = Signal(dict)
     exit_requested = Signal()
+    capture_preferences_requested = Signal(bool)
 
     def __init__(self, shortcuts):
         super().__init__()
@@ -109,6 +110,28 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setWidget(settings)
         tabs.addTab(scroll, "Keyboard shortcuts")
+        capture_page = QWidget()
+        capture_page.setObjectName("home")
+        capture_layout = QVBoxLayout(capture_page)
+        info = QLabel("Capture your frozen screen and annotations, without the toolbar or cursor.\n"
+                      "Choose full screen or a region, then Save a PNG or Copy the image.\n"
+                      "Screenshots stay local. Nothing is uploaded or captured automatically.")
+        info.setWordWrap(True)
+        capture_layout.addWidget(info)
+        capture_layout.addWidget(QLabel("Format: PNG (lossless)"))
+        self.export_dimming = QCheckBox("Include background dimming in exported images")
+        self.export_dimming.setStyleSheet("color: #e6edf7; padding: 8px 0;")
+        self.export_dimming.setChecked(True)
+        capture_layout.addWidget(self.export_dimming)
+        self.capture_folder = QLabel("The last successful save folder is remembered automatically.")
+        self.capture_folder.setWordWrap(True)
+        self.capture_folder.setTextFormat(Qt.TextFormat.PlainText)
+        capture_layout.addWidget(self.capture_folder)
+        save_capture = QPushButton("Save screenshot preferences")
+        save_capture.clicked.connect(lambda: self.capture_preferences_requested.emit(self.export_dimming.isChecked()))
+        capture_layout.addWidget(save_capture)
+        capture_layout.addStretch()
+        tabs.addTab(capture_page, "Screenshots")
         footer = QLabel("Closing this window keeps ScreenInk in the tray. Right-click its tray icon to reopen it or exit.")
         footer.setWordWrap(True)
         layout.addWidget(footer)
@@ -118,6 +141,10 @@ class MainWindow(QMainWindow):
         values = {name: editor.keySequence().toString(QKeySequence.SequenceFormat.PortableText)
                   for name, editor in self.editors.items()}
         self.shortcuts_requested.emit(values)
+
+    def refresh_capture_preferences(self, settings):
+        self.export_dimming.setChecked(settings.export_dimming)
+        self.capture_folder.setText(f"Last screenshot folder: {settings.last_screenshot_folder}\nUpdated after a successful save.")
 
     def set_editors(self, shortcuts):
         for name, shortcut in shortcuts.items():
@@ -137,6 +164,8 @@ class MainWindow(QMainWindow):
             "undo": "Undo drawings, erasing, and Clear.", "redo": "Restore undone actions.",
             "clear": "Clear all annotations; Undo can restore them.",
             "close": "Return to the desktop. Escape is always available.",
+            "capture_full": "Preview the annotated monitor without the toolbar or cursor; save or copy.",
+            "capture_region": "Drag to select a region. Escape cancels selection without closing drawing.",
         }
         rows = "".join(f"<p><b>{ACTION_LABELS[name]} · {shortcuts[name]}</b><br>{description}</p>"
                        for name, description in descriptions.items())
@@ -145,7 +174,7 @@ class MainWindow(QMainWindow):
                            "<b>Colors:</b> red, green, yellow, white, blue. "
                            "<b>Widths:</b> 2, 4, 6, 8, 12 px. "
                            "Drag the toolbar by its dotted handle. The cursor's target center marks your drawing point."
-                           + rows + "<p>Closing the overlay discards its drawings. No recording or export is included in this beta.</p>")
+                           + rows + "<p>Closing the overlay discards its drawings. Save a PNG or copy an image first if you want to keep it. No recording is included.</p>")
 
     def closeEvent(self, event):
         if self.allow_exit:
